@@ -43,7 +43,7 @@ export function Effects() {
     }
   }, [gl]);
 
-  const ssao = quality !== "low" && supportsAO;
+  const ssao = quality !== "low" && (supportsAO || true);
   const dof = quality === "ultra";
 
   return (
