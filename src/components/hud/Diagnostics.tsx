@@ -32,18 +32,22 @@ export function DiagnosticsProbe() {
   const network = useEditorStore((s) => s.network);
 
   useFrame(() => {
+    // Manual reset: the post-processing composer renders several passes per
+    // frame, so we accumulate and average instead of reading a reset counter.
+    gl.info.autoReset = false;
     frames.current += 1;
-    peakCalls.current = Math.max(peakCalls.current, gl.info.render.calls);
-    peakTris.current = Math.max(peakTris.current, gl.info.render.triangles);
+    peakCalls.current = gl.info.render.calls;
+    peakTris.current = gl.info.render.triangles;
     const now = performance.now();
     const elapsed = now - last.current;
     if (elapsed < 500) return;
     setStats({
       fps: Math.round((frames.current * 1000) / elapsed),
-      calls: peakCalls.current,
-      tris: peakTris.current,
+      calls: Math.round(peakCalls.current / Math.max(1, frames.current)),
+      tris: Math.round(peakTris.current / Math.max(1, frames.current)),
       mem: readMemoryMB(),
     });
+    gl.info.reset();
     frames.current = 0;
     peakCalls.current = 0;
     peakTris.current = 0;
