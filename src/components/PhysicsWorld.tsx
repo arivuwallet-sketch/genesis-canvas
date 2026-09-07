@@ -1,6 +1,12 @@
 import { Physics, RigidBody } from "@react-three/rapier";
+import { Suspense, type ReactNode } from "react";
+import { AssetLoader } from "./AssetLoader";
+import { PlayerController } from "./player/PlayerController";
+import { useEditorStore } from "../store/useEditorStore";
 
-export function PhysicsWorld() {
+export function PhysicsWorld({ children }: { children?: ReactNode }) {
+  const playerEnabled = useEditorStore((s) => s.playerEnabled);
+
   return (
     <Physics gravity={[0, -9.81, 0]}>
       {/* Static floor */}
@@ -11,7 +17,7 @@ export function PhysicsWorld() {
         </mesh>
       </RigidBody>
 
-      {/* Falling metallic cube */}
+      {/* Reference metallic cube — verifies physics on load */}
       <RigidBody
         position={[0, 6, 0]}
         rotation={[0.4, 0.6, 0.2]}
@@ -24,6 +30,15 @@ export function PhysicsWorld() {
           <meshStandardMaterial color="#9aa5a0" metalness={1} roughness={0.18} />
         </mesh>
       </RigidBody>
+
+      {/* Everything the AI/chat bridge has spawned */}
+      <Suspense fallback={null}>
+        <AssetLoader />
+      </Suspense>
+
+      {playerEnabled && <PlayerController />}
+
+      {children}
     </Physics>
   );
 }
