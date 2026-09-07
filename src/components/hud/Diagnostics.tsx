@@ -23,6 +23,8 @@ function readMemoryMB(): number | null {
 export function DiagnosticsProbe() {
   const gl = useThree((s) => s.gl);
   const frames = useRef(0);
+  const peakCalls = useRef(0);
+  const peakTris = useRef(0);
   const last = useRef(performance.now());
   const [stats, setStats] = useState({ fps: 0, calls: 0, tris: 0, mem: readMemoryMB() });
 
@@ -31,16 +33,20 @@ export function DiagnosticsProbe() {
 
   useFrame(() => {
     frames.current += 1;
+    peakCalls.current = Math.max(peakCalls.current, gl.info.render.calls);
+    peakTris.current = Math.max(peakTris.current, gl.info.render.triangles);
     const now = performance.now();
     const elapsed = now - last.current;
     if (elapsed < 500) return;
     setStats({
       fps: Math.round((frames.current * 1000) / elapsed),
-      calls: gl.info.render.calls,
-      tris: gl.info.render.triangles,
+      calls: peakCalls.current,
+      tris: peakTris.current,
       mem: readMemoryMB(),
     });
     frames.current = 0;
+    peakCalls.current = 0;
+    peakTris.current = 0;
     last.current = now;
   });
 

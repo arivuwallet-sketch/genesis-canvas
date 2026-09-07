@@ -1,11 +1,12 @@
 import {
   Bloom,
+  ToneMapping,
   DepthOfField,
   EffectComposer,
   SMAA,
   SSAO,
 } from "@react-three/postprocessing";
-import { BlendFunction } from "postprocessing";
+import { BlendFunction, ToneMappingMode } from "postprocessing";
 import { useEditorStore } from "../store/useEditorStore";
 import { playerPosition } from "../state/playerTransform";
 
@@ -31,8 +32,8 @@ export function Effects() {
       depthBuffer
     >
       <Bloom
-        intensity={quality === "low" ? 0.5 : 1.15}
-        luminanceThreshold={0.72}
+        intensity={quality === "low" ? 0.35 : 0.75}
+        luminanceThreshold={0.9}
         luminanceSmoothing={0.25}
         mipmapBlur
         radius={0.72}
@@ -63,6 +64,7 @@ export function Effects() {
       ) : (
         <></>
       )}
+      <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
       <SMAA />
     </EffectComposer>
   );
