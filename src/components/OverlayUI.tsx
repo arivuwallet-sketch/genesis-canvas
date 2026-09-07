@@ -1,5 +1,35 @@
 import { useEffect, useRef } from "react";
-import { useEditorStore } from "../store/useEditorStore";
+import { useEditorStore, type GraphicsQuality } from "../store/useEditorStore";
+import { useNetworkSync } from "../hooks/useNetworkSync";
+import { hudTunnel } from "./hud/Diagnostics";
+
+const QUALITY: { value: GraphicsQuality; label: string }[] = [
+  { value: "low", label: "Low" },
+  { value: "medium", label: "Medium" },
+  { value: "ultra", label: "Ultra" },
+];
+
+function QualitySelect() {
+  const quality = useEditorStore((s) => s.graphicsQuality);
+  const setQuality = useEditorStore((s) => s.setGraphicsQuality);
+
+  return (
+    <label className="glass-panel flex items-center gap-2 rounded-full px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+      <span>Graphics</span>
+      <select
+        value={quality}
+        onChange={(e) => setQuality(e.target.value as GraphicsQuality)}
+        className="cursor-pointer bg-transparent uppercase tracking-[0.18em] text-primary focus:outline-none"
+      >
+        {QUALITY.map((q) => (
+          <option key={q.value} value={q.value} className="bg-card text-foreground">
+            {q.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
 
 function LoadingBar() {
   const isLoading = useEditorStore((s) => s.isLoading);
@@ -96,6 +126,9 @@ export function OverlayUI() {
   const playerEnabled = useEditorStore((s) => s.playerEnabled);
   const setPlayerEnabled = useEditorStore((s) => s.setPlayerEnabled);
 
+  // Socket lifecycle + listeners live entirely in this hook.
+  useNetworkSync();
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
@@ -135,6 +168,7 @@ export function OverlayUI() {
           >
             {cameraMode === "first" ? "1st person" : "3rd person"} · C
           </button>
+          <QualitySelect />
           <button
             onClick={togglePerf}
             className={`${pill} text-muted-foreground hover:text-primary`}
@@ -146,6 +180,7 @@ export function OverlayUI() {
 
       <LoadingBar />
       <EntityList />
+      <hudTunnel.Out />
 
       {playerEnabled && (
         <p className="absolute bottom-28 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">
