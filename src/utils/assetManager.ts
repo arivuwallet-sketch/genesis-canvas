@@ -6,30 +6,24 @@ import {
   computeBoundsTree,
   disposeBoundsTree,
   acceleratedRaycast,
-  type MeshBVH,
 } from "three-mesh-bvh";
 
 /* ------------------------------------------------------------------ */
 /* three-mesh-bvh: accelerate raycasting for every geometry / mesh     */
 /* ------------------------------------------------------------------ */
 
-declare module "three" {
-  interface BufferGeometry {
-    boundsTree?: MeshBVH;
-    computeBoundsTree: typeof computeBoundsTree;
-    disposeBoundsTree: typeof disposeBoundsTree;
-  }
-}
-
 let bvhInstalled = false;
 export function installBVH() {
   if (bvhInstalled) return;
-  THREE.BufferGeometry.prototype.computeBoundsTree = computeBoundsTree;
-  THREE.BufferGeometry.prototype.disposeBoundsTree = disposeBoundsTree;
-  THREE.Mesh.prototype.raycast = acceleratedRaycast;
+  const proto = THREE.BufferGeometry.prototype as unknown as Record<string, unknown>;
+  proto["computeBoundsTree"] = computeBoundsTree;
+  proto["disposeBoundsTree"] = disposeBoundsTree;
+  (THREE.Mesh.prototype as unknown as Record<string, unknown>)["raycast"] =
+    acceleratedRaycast;
   bvhInstalled = true;
 }
 installBVH();
+
 
 /** Build BVH bounds trees + shadow flags on every mesh of a loaded scene. */
 export function optimizeScene(scene: THREE.Object3D) {
