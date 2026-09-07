@@ -2,6 +2,13 @@ import { create } from "zustand";
 import { matchCatalog } from "../utils/assetManager";
 
 export type CameraMode = "first" | "third";
+export type GraphicsQuality = "low" | "medium" | "ultra";
+
+export interface NetworkState {
+  status: "offline" | "connecting" | "connected" | "simulated";
+  ping: number;
+  peers: number;
+}
 
 export interface SpawnedObject {
   id: string;
@@ -41,6 +48,14 @@ interface EditorState {
   loadingProgress: number;
   isLoading: boolean;
   setLoading: (progress: number, active: boolean) => void;
+
+  /* graphics */
+  graphicsQuality: GraphicsQuality;
+  setGraphicsQuality: (q: GraphicsQuality) => void;
+
+  /* network */
+  network: NetworkState;
+  setNetwork: (patch: Partial<NetworkState>) => void;
 
   /* perf */
   showPerf: boolean;
@@ -116,6 +131,12 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   loadingProgress: 0,
   isLoading: false,
   setLoading: (progress, active) => set({ loadingProgress: progress, isLoading: active }),
+
+  graphicsQuality: "medium",
+  setGraphicsQuality: (q) => set({ graphicsQuality: q }),
+
+  network: { status: "offline", ping: 0, peers: 0 },
+  setNetwork: (patch) => set((s) => ({ network: { ...s.network, ...patch } })),
 
   showPerf: false,
   togglePerf: () => set((s) => ({ showPerf: !s.showPerf })),
