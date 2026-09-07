@@ -4,6 +4,8 @@ import { Ecctrl, type EcctrlHandle } from "ecctrl";
 import { useEffect, useRef, type ReactNode } from "react";
 import * as THREE from "three";
 import { useEditorStore } from "../../store/useEditorStore";
+import { playerPosition, playerState } from "../../state/playerTransform";
+import { sendTransform } from "../../network/socketClient";
 
 /* ------------------------------------------------------------------ */
 /* Keyboard map — WASD + space to jump + shift to run                  */
@@ -121,6 +123,12 @@ function ControllerRig() {
 
     const pos = body.currPos;
     camTarget.set(pos.x, pos.y + 0.45, pos.z);
+
+    // Publish for DoF focus + throttled network emit (15 Hz inside sendTransform).
+    playerPosition.set(pos.x, pos.y, pos.z);
+    playerState.yaw = yaw;
+    playerState.active = true;
+    sendTransform({ position: [pos.x, pos.y, pos.z], yaw });
 
     if (firstPerson) {
       camera.position.lerp(camTarget, 1 - Math.exp(-30 * delta));

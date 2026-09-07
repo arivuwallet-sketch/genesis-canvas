@@ -5,6 +5,9 @@ import { Suspense } from "react";
 import { PhysicsWorld } from "./PhysicsWorld";
 import { PlayerKeyboardProvider } from "./player/PlayerController";
 import { useEditorStore } from "../store/useEditorStore";
+import { Effects } from "./Effects";
+import { RemotePlayers } from "./network/RemotePlayers";
+import { DiagnosticsProbe } from "./hud/Diagnostics";
 
 export function Viewport() {
   const showPerf = useEditorStore((s) => s.showPerf);
@@ -53,6 +56,8 @@ export function Viewport() {
         <PlayerKeyboardProvider>
           <PhysicsWorld />
         </PlayerKeyboardProvider>
+
+        <RemotePlayers />
       </Suspense>
 
       <Grid
@@ -69,6 +74,9 @@ export function Viewport() {
         infiniteGrid
       />
       <axesHelper args={[4]} />
+
+      <DiagnosticsProbe />
+      <Effects />
 
       {!playerEnabled && (
         <OrbitControls
