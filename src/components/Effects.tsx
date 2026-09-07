@@ -44,7 +44,7 @@ export function Effects() {
           samples={quality === "ultra" ? 21 : 12}
           rings={4}
           radius={0.08}
-          intensity={quality === "ultra" ? 12 : 8}
+          intensity={0.0001}
           luminanceInfluence={0.6}
           bias={0.03}
         />
