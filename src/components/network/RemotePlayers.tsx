@@ -3,7 +3,7 @@ import { Html } from "@react-three/drei";
 import { useRef } from "react";
 import * as THREE from "three";
 import { getRemotePlayers } from "../../network/socketClient";
-import { useNetworkRoster } from "./rosterContext";
+import { useNetworkRoster } from "./useRoster";
 
 /**
  * One remote avatar. Network packets arrive at ~8-15 Hz; the mesh is lerped
@@ -61,7 +61,7 @@ export function RemotePlayers() {
   const roster = useNetworkRoster();
   return (
     <>
-      {roster.map((id) => (
+      {roster.map((id: string) => (
         <RemoteAvatar key={id} id={id} />
       ))}
     </>
