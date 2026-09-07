@@ -74,9 +74,15 @@ export function getKTX2Loader(renderer?: THREE.WebGLRenderer) {
 }
 
 /** Attach DRACO + KTX2 support to a GLTFLoader instance (used by useGLTF). */
-export function extendGLTFLoader(loader: GLTFLoader, renderer?: THREE.WebGLRenderer) {
-  loader.setDRACOLoader(getDracoLoader());
-  loader.setKTX2Loader(getKTX2Loader(renderer));
+type AnyGLTFLoader = {
+  setDRACOLoader: (l: unknown) => unknown;
+  setKTX2Loader: (l: unknown) => unknown;
+};
+
+export function extendGLTFLoader(loader: unknown, renderer?: THREE.WebGLRenderer) {
+  const l = loader as AnyGLTFLoader;
+  l.setDRACOLoader(getDracoLoader());
+  l.setKTX2Loader(getKTX2Loader(renderer));
 }
 
 /** Standalone loader for imperative loads outside of Suspense. */
