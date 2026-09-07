@@ -20,7 +20,7 @@ export function Viewport() {
 
       {showPerf && <Perf position="top-left" />}
 
-      <ambientLight intensity={0.25} />
+      <ambientLight intensity={0.5} />
       <directionalLight
         position={[10, 16, 8]}
         intensity={2}
@@ -31,7 +31,7 @@ export function Viewport() {
 
       <Suspense fallback={null}>
         <Environment>
-          <Lightformer intensity={2} position={[0, 8, 0]} scale={[12, 12, 1]} />
+          <Lightformer intensity={5} position={[0, 8, 0]} scale={[16, 16, 1]} />
           <Lightformer
             intensity={1.2}
             color="#b6f36a"
