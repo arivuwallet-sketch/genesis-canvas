@@ -1,5 +1,5 @@
 import { KeyboardControls, type KeyboardControlsEntry } from "@react-three/drei";
-import Ecctrl from "ecctrl";
+import { Ecctrl } from "ecctrl";
 import { useMemo } from "react";
 import { useEditorStore } from "../../store/useEditorStore";
 

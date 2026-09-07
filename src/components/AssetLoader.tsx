@@ -1,9 +1,9 @@
-import { useGLTF } from "@react-three/drei";
+import { useGLTF, useProgress } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
 import { RigidBody } from "@react-three/rapier";
 import { Component, Suspense, useEffect, useMemo, type ReactNode } from "react";
-import type { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { SkeletonUtils } from "three/examples/jsm/utils/SkeletonUtils.js";
+import * as THREE from "three";
+import { clone as skeletonClone } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { extendGLTFLoader, optimizeScene } from "../utils/assetManager";
 import { useEditorStore, type SpawnedObject } from "../store/useEditorStore";
 
@@ -15,19 +15,27 @@ class ModelErrorBoundary extends Component<
   { children: ReactNode; fallback: ReactNode },
   { failed: boolean }
 > {
-  state = { failed: false };
+  override state = { failed: false };
+
   static getDerivedStateFromError() {
     return { failed: true };
   }
-  componentDidCatch(error: unknown) {
+
+  override componentDidCatch(error: unknown) {
     console.warn("[AssetLoader] model failed to load", error);
   }
-  render() {
+
+  override render() {
     return this.state.failed ? this.props.fallback : this.props.children;
   }
 }
 
-/** Stylized wireframe bounding box used while loading or when a model fails. */
+/* ------------------------------------------------------------------ */
+/* Stylized bounding volume: loading + failure fallback                */
+/* ------------------------------------------------------------------ */
+
+const FALLBACK_BOX = new THREE.BoxGeometry(1, 1, 1);
+
 export function FallbackVolume({ scale = 1 }: { scale?: number }) {
   return (
     <group scale={scale}>
@@ -36,36 +44,27 @@ export function FallbackVolume({ scale = 1 }: { scale?: number }) {
         <meshStandardMaterial
           color="#7ee34a"
           transparent
-          opacity={0.12}
+          opacity={0.14}
           metalness={0.6}
           roughness={0.25}
         />
       </mesh>
       <lineSegments>
-        <edgesGeometry args={[new THREE_BoxGeometry()]} />
+        <edgesGeometry args={[FALLBACK_BOX]} />
         <lineBasicMaterial color="#b6f36a" />
       </lineSegments>
     </group>
   );
 }
 
-// tiny helper so we don't import all of three just for the edges geometry
-import * as THREE from "three";
-function THREE_BoxGeometry() {
-  return new THREE.BoxGeometry(1, 1, 1);
-}
-
 /* ------------------------------------------------------------------ */
-/* GLTF model, DRACO + KTX2 enabled, BVH optimized                     */
+/* GLTF model — DRACO + KTX2 enabled, BVH optimized                    */
 /* ------------------------------------------------------------------ */
 
 function GLTFModel({ url, scale }: { url: string; scale: number }) {
   const gl = useThree((s) => s.gl);
-  const { scene } = useGLTF(url, true, true, (loader) =>
-    extendGLTFLoader(loader as GLTFLoader, gl),
-  );
-
-  const cloned = useMemo(() => optimizeScene(SkeletonUtils.clone(scene)), [scene]);
+  const { scene } = useGLTF(url, true, true, (loader) => extendGLTFLoader(loader, gl));
+  const cloned = useMemo(() => optimizeScene(skeletonClone(scene)), [scene]);
 
   return <primitive object={cloned} scale={scale} />;
 }
@@ -104,18 +103,10 @@ export function AssetLoader() {
   const spawnedObjects = useEditorStore((s) => s.spawnedObjects);
   const setLoading = useEditorStore((s) => s.setLoading);
 
-  // Mirror drei's global loading progress into the store for the HUD.
+  // Mirror drei's global asset loading progress into the store for the HUD.
   useEffect(() => {
-    let frame = 0;
-    const tick = () => {
-      const { active, progress } = (
-        useGLTF as unknown as { preload: unknown }
-      ) && LoaderState();
-      setLoading(progress, active);
-      frame = requestAnimationFrame(tick);
-    };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
+    setLoading(useProgress.getState().progress, useProgress.getState().active);
+    return useProgress.subscribe((s) => setLoading(s.progress, s.active));
   }, [setLoading]);
 
   return (
@@ -125,11 +116,4 @@ export function AssetLoader() {
       ))}
     </>
   );
-}
-
-// drei exposes loading state through its progress store
-import { useProgress } from "@react-three/drei";
-function LoaderState() {
-  const { active, progress } = useProgress.getState();
-  return { active, progress };
 }
