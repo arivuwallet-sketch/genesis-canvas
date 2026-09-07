@@ -1,8 +1,15 @@
 import { create } from "zustand";
-import { matchCatalog } from "../utils/assetManager";
 
 export type CameraMode = "first" | "third";
 export type GraphicsQuality = "low" | "medium" | "ultra";
+
+export type PrimitiveGeometry =
+  | "box"
+  | "sphere"
+  | "cylinder"
+  | "cone"
+  | "torus"
+  | "capsule";
 
 export interface NetworkState {
   status: "offline" | "connecting" | "connected" | "simulated";
@@ -10,18 +17,35 @@ export interface NetworkState {
   peers: number;
 }
 
+export interface PhysicsProps {
+  type: "dynamic" | "fixed";
+  mass: number;
+  restitution: number;
+  friction: number;
+  gravityScale: number;
+}
+
 export interface SpawnedObject {
   id: string;
   name: string;
+  /** "model" renders a GLTF, "primitive" renders a drei/three primitive. */
+  kind: "model" | "primitive";
   modelUrl: string | null;
+  geometry: PrimitiveGeometry;
+  color: string;
+  metalness: number;
+  roughness: number;
+  emissive: number;
   position: [number, number, number];
-  scale: number;
+  rotation: [number, number, number];
+  scale: [number, number, number];
+  physics: PhysicsProps;
 }
 
 export interface LogEntry {
   id: string;
   text: string;
-  kind: "user" | "system";
+  kind: "user" | "system" | "ai" | "error";
 }
 
 interface EditorState {
@@ -30,11 +54,19 @@ interface EditorState {
   setChatInput: (value: string) => void;
   lastPrompt: string | null;
   log: LogEntry[];
-  submitPrompt: () => void;
+  pushLog: (text: string, kind: LogEntry["kind"]) => void;
+
+  /* ai streaming */
+  aiThinking: boolean;
+  setAiThinking: (v: boolean) => void;
+  streamText: string;
+  setStreamText: (text: string) => void;
+  appendStreamText: (chunk: string) => void;
 
   /* world */
   spawnedObjects: SpawnedObject[];
-  spawnObject: (obj: Omit<SpawnedObject, "id">) => void;
+  spawnObject: (obj: Partial<SpawnedObject>) => string;
+  updateObject: (id: string, patch: Partial<SpawnedObject>) => boolean;
   removeObject: (id: string) => void;
   clearObjects: () => void;
 
@@ -64,60 +96,64 @@ interface EditorState {
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
-const randomSpot = (): [number, number, number] => [
-  (Math.random() - 0.5) * 8,
-  3,
-  (Math.random() - 0.5) * 8,
-];
+export const DEFAULT_PHYSICS: PhysicsProps = {
+  type: "dynamic",
+  mass: 1,
+  restitution: 0.2,
+  friction: 1,
+  gravityScale: 1,
+};
+
+export function createSpawnedObject(patch: Partial<SpawnedObject>): SpawnedObject {
+  return {
+    id: uid(),
+    name: patch.name ?? "Entity",
+    kind: patch.kind ?? (patch.modelUrl ? "model" : "primitive"),
+    modelUrl: patch.modelUrl ?? null,
+    geometry: patch.geometry ?? "box",
+    color: patch.color ?? "#b6f36a",
+    metalness: patch.metalness ?? 0.4,
+    roughness: patch.roughness ?? 0.4,
+    emissive: patch.emissive ?? 0,
+    position: patch.position ?? [0, 5, 0],
+    rotation: patch.rotation ?? [0, 0, 0],
+    scale: patch.scale ?? [1, 1, 1],
+    physics: { ...DEFAULT_PHYSICS, ...(patch.physics ?? {}) },
+  };
+}
 
 export const useEditorStore = create<EditorState>((set, get) => ({
   chatInput: "",
   setChatInput: (value) => set({ chatInput: value }),
   lastPrompt: null,
   log: [],
+  pushLog: (text, kind) =>
+    set((s) => ({ log: [...s.log, { id: uid(), text, kind }].slice(-40) })),
 
-  submitPrompt: () => {
-    const value = get().chatInput.trim();
-    if (!value) return;
-    const entries: LogEntry[] = [{ id: uid(), text: value, kind: "user" }];
-
-    const lower = value.toLowerCase();
-    if (lower.startsWith("clear")) {
-      get().clearObjects();
-      entries.push({ id: uid(), text: "World cleared.", kind: "system" });
-    } else if (lower.includes("spawn")) {
-      const match = matchCatalog(lower);
-      get().spawnObject({
-        name: match?.name ?? "Unknown Entity",
-        modelUrl: match?.modelUrl ?? null,
-        position: randomSpot(),
-        scale: match?.scale ?? 1,
-      });
-      entries.push({
-        id: uid(),
-        text: match
-          ? `Spawned ${match.name} into the world.`
-          : "No model matched — dropped a placeholder volume.",
-        kind: "system",
-      });
-    } else {
-      entries.push({
-        id: uid(),
-        text: 'Queued. Try "spawn robot" or "clear".',
-        kind: "system",
-      });
-    }
-
-    set((s) => ({
-      lastPrompt: value,
-      chatInput: "",
-      log: [...s.log, ...entries].slice(-30),
-    }));
-  },
+  aiThinking: false,
+  setAiThinking: (v) => set({ aiThinking: v }),
+  streamText: "",
+  setStreamText: (text) => set({ streamText: text }),
+  appendStreamText: (chunk) => set((s) => ({ streamText: s.streamText + chunk })),
 
   spawnedObjects: [],
-  spawnObject: (obj) =>
-    set((s) => ({ spawnedObjects: [...s.spawnedObjects, { id: uid(), ...obj }] })),
+  spawnObject: (patch) => {
+    const object = createSpawnedObject(patch);
+    set((s) => ({ spawnedObjects: [...s.spawnedObjects, object] }));
+    return object.id;
+  },
+  updateObject: (id, patch) => {
+    const exists = get().spawnedObjects.some((o) => o.id === id);
+    if (!exists) return false;
+    set((s) => ({
+      spawnedObjects: s.spawnedObjects.map((o) =>
+        o.id === id
+          ? { ...o, ...patch, id: o.id, physics: { ...o.physics, ...(patch.physics ?? {}) } }
+          : o,
+      ),
+    }));
+    return true;
+  },
   removeObject: (id) =>
     set((s) => ({ spawnedObjects: s.spawnedObjects.filter((o) => o.id !== id) })),
   clearObjects: () => set({ spawnedObjects: [] }),
