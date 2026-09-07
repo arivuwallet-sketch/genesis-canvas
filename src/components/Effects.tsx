@@ -41,15 +41,12 @@ export function Effects() {
       {ssao ? (
         <SSAO
           blendFunction={BlendFunction.MULTIPLY}
-          samples={quality === "ultra" ? 24 : 12}
+          samples={quality === "ultra" ? 21 : 12}
           rings={4}
-          radius={0.16}
-          intensity={quality === "ultra" ? 22 : 14}
-          luminanceInfluence={0.55}
-          worldDistanceThreshold={24}
-          worldDistanceFalloff={4}
-          worldProximityThreshold={4}
-          worldProximityFalloff={1}
+          radius={0.08}
+          intensity={quality === "ultra" ? 12 : 8}
+          luminanceInfluence={0.6}
+          bias={0.03}
         />
       ) : (
         <></>
