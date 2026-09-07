@@ -44,6 +44,7 @@
         "clsx": "^2.1.1",
         "cmdk": "^1.1.1",
         "date-fns": "^4.1.0",
+        "ecctrl": "^2.0.1",
         "embla-carousel-react": "^8.6.0",
         "input-otp": "^1.4.2",
         "lucide-react": "^0.575.0",
@@ -58,6 +59,7 @@
         "tailwind-merge": "^3.5.0",
         "tailwindcss": "^4.2.1",
         "three": "^0.185.1",
+        "three-mesh-bvh": "^0.9.14",
         "tunnel-rat": "^0.1.2",
         "tw-animate-css": "^1.3.4",
         "vaul": "^1.1.2",
@@ -685,6 +687,8 @@
 
     "draco3d": ["draco3d@1.5.7", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/draco3d/-/draco3d-1.5.7.tgz", {}, "sha512-m6WCKt/erDXcw+70IJXnG7M3awwQPAsZvJGX5zY7beBqpELw6RDGkYVU0W43AFxye4pDZ5i2Lbyc/NNGqwjUVQ=="],
 
+    "ecctrl": ["ecctrl@2.0.1", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/ecctrl/-/ecctrl-2.0.1.tgz", { "dependencies": { "zustand": "^5.0.14" }, "peerDependencies": { "@react-three/drei": ">=10.7", "@react-three/fiber": ">=9.4", "@react-three/rapier": ">=2.2.0", "leva": ">=0.10.1", "react": ">=19.2.7", "react-dom": ">=19.2.7", "three": ">=0.184.0" }, "optionalPeers": ["@react-three/drei", "leva"] }, "sha512-LCXlL4DIY1OWAhu5GojJ7TJJhOjdOOEdvl9iODwVJY3jafPWT9b/Y2gI6HHV4uSXXdUAigChb6r83ZcXbwxGSQ=="],
+
     "electron-to-chromium": ["electron-to-chromium@1.5.398", "", {}, "sha512-AsvhAxopJGh6museTDMIjn6JpDYOfgu4RLlygomt87MUwBUqTfd/1EiPtx10/LZE8xpTvkP2E9Gafq7lkLtodQ=="],
 
     "embla-carousel": ["embla-carousel@8.6.0", "", {}, "sha512-SjWyZBHJPbqxHOzckOfo8lHisEaJWmwd23XppYFYVh10bU66/Pn5tkVkbkCMZVdbUE5eTCI2nD8OyIP4Z+uwkA=="],
@@ -1019,7 +1023,7 @@
 
     "three": ["three@0.185.1", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/three/-/three-0.185.1.tgz", {}, "sha512-5aojFCXKwnjBRZvUnt3WFfEcvUJgkN5LlijRFN95hMy8WVkG4I0QNcJE+OuWvuJ0bOdStrbfXn0pkd6/QyiAlg=="],
 
-    "three-mesh-bvh": ["three-mesh-bvh@0.8.3", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/three-mesh-bvh/-/three-mesh-bvh-0.8.3.tgz", { "peerDependencies": { "three": ">= 0.159.0" } }, "sha512-4G5lBaF+g2auKX3P0yqx+MJC6oVt6sB5k+CchS6Ob0qvH0YIhuUk1eYr7ktsIpY+albCqE80/FVQGV190PmiAg=="],
+    "three-mesh-bvh": ["three-mesh-bvh@0.9.14", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/three-mesh-bvh/-/three-mesh-bvh-0.9.14.tgz", { "peerDependencies": { "three": ">= 0.159.0" } }, "sha512-xJzfUXnLYjgw5tRKGxjfJW3Pcx0IbwNskvpdwRryhK07SYrKrYB4W8zAaPxu784gK7G4lCBgG+vfG3YeYn95kg=="],
 
     "three-stdlib": ["three-stdlib@2.36.1", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/three-stdlib/-/three-stdlib-2.36.1.tgz", { "dependencies": { "@types/draco3d": "^1.4.0", "@types/offscreencanvas": "^2019.6.4", "@types/webxr": "^0.5.2", "draco3d": "^1.4.1", "fflate": "^0.6.9", "potpack": "^1.0.1" }, "peerDependencies": { "three": ">=0.128.0" } }, "sha512-XyGQrFmNQ5O/IoKm556ftwKsBg11TIb301MB5dWNicziQBEs2g3gtOYIf7pFiLa0zI2gUwhtCjv9fmjnxKZ1Cg=="],
 
@@ -1106,6 +1110,8 @@
     "@eslint-community/eslint-utils/eslint-visitor-keys": ["eslint-visitor-keys@3.4.3", "", {}, "sha512-wpc+LXeiyiisxPlEkUzU6svyS1frIO3Mgxj1fdy7Pm8Ygzguax2N3Fa/D/ag1WqbOprdI+uY6wMUl8/a2G+iag=="],
 
     "@eslint/eslintrc/globals": ["globals@14.0.0", "", {}, "sha512-oahGvuMGQlPw/ivIYBjVSrWAfWLBeku5tpPE2fOPLi+WHffIWbuh2tCjhyQhTBPMf5E9jDEH4FOmTYgYwbKwtQ=="],
+
+    "@react-three/drei/three-mesh-bvh": ["three-mesh-bvh@0.8.3", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/three-mesh-bvh/-/three-mesh-bvh-0.8.3.tgz", { "peerDependencies": { "three": ">= 0.159.0" } }, "sha512-4G5lBaF+g2auKX3P0yqx+MJC6oVt6sB5k+CchS6Ob0qvH0YIhuUk1eYr7ktsIpY+albCqE80/FVQGV190PmiAg=="],
 
     "@react-three/rapier/@dimforge/rapier3d-compat": ["@dimforge/rapier3d-compat@0.19.2", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@dimforge/rapier3d-compat/-/rapier3d-compat-0.19.2.tgz", {}, "sha512-AZHL1jqUF55QJkJyU1yKeh4ImX2J93bVLIezT1+o0FZqTix6O06MOaqpKoJ4MmbDCsoZmwO+qc471/SDMDm2AA=="],
 
