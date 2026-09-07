@@ -130,10 +130,10 @@ function ControllerRig() {
         camTarget.z - Math.cos(yaw) * Math.cos(pitch),
       );
     } else {
-      const dist = 5;
+      const dist = 6.5;
       camDesired.set(
         camTarget.x + Math.sin(yaw) * Math.cos(pitch) * dist,
-        camTarget.y + 1.4 - Math.sin(pitch) * dist,
+        camTarget.y + 1.1 - Math.sin(pitch) * dist,
         camTarget.z + Math.cos(yaw) * Math.cos(pitch) * dist,
       );
       camera.position.lerp(camDesired, 1 - Math.exp(-10 * delta));

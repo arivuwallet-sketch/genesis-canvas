@@ -105,8 +105,18 @@ export function AssetLoader() {
 
   // Mirror drei's global asset loading progress into the store for the HUD.
   useEffect(() => {
-    setLoading(useProgress.getState().progress, useProgress.getState().active);
-    return useProgress.subscribe((s) => setLoading(s.progress, s.active));
+    let raf = 0;
+    const push = (progress: number, active: boolean) => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => setLoading(progress, active));
+    };
+    const initial = useProgress.getState();
+    push(initial.progress, initial.active);
+    const unsub = useProgress.subscribe((s) => push(s.progress, s.active));
+    return () => {
+      cancelAnimationFrame(raf);
+      unsub();
+    };
   }, [setLoading]);
 
   return (
