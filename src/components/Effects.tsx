@@ -29,7 +29,6 @@ export function Effects() {
       key={quality}
       multisampling={0}
       enableNormalPass={ssao}
-      depthBuffer
     >
       <Bloom
         intensity={quality === "low" ? 0.35 : 0.75}
@@ -44,7 +43,7 @@ export function Effects() {
           samples={quality === "ultra" ? 21 : 12}
           rings={4}
           radius={0.08}
-          intensity={0.0001}
+          intensity={quality === "ultra" ? 12 : 8}
           luminanceInfluence={0.6}
           bias={0.03}
         />
