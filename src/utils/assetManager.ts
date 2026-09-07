@@ -32,8 +32,11 @@ export function optimizeScene(scene: THREE.Object3D) {
     if (!mesh.isMesh) return;
     mesh.castShadow = true;
     mesh.receiveShadow = true;
-    const geom = mesh.geometry as THREE.BufferGeometry;
-    if (geom && !geom.boundsTree) {
+    const geom = mesh.geometry as unknown as {
+      boundsTree?: unknown;
+      computeBoundsTree?: () => void;
+    };
+    if (geom && !geom.boundsTree && geom.computeBoundsTree) {
       try {
         geom.computeBoundsTree();
       } catch {
