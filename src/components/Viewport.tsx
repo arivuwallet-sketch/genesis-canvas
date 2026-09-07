@@ -3,10 +3,12 @@ import { Environment, Lightformer, OrbitControls, Grid } from "@react-three/drei
 import { Perf } from "r3f-perf";
 import { Suspense } from "react";
 import { PhysicsWorld } from "./PhysicsWorld";
+import { PlayerKeyboardProvider } from "./player/PlayerController";
 import { useEditorStore } from "../store/useEditorStore";
 
 export function Viewport() {
   const showPerf = useEditorStore((s) => s.showPerf);
+  const playerEnabled = useEditorStore((s) => s.playerEnabled);
 
   return (
     <Canvas
@@ -48,7 +50,9 @@ export function Viewport() {
           />
         </Environment>
 
-        <PhysicsWorld />
+        <PlayerKeyboardProvider>
+          <PhysicsWorld />
+        </PlayerKeyboardProvider>
       </Suspense>
 
       <Grid
@@ -66,13 +70,15 @@ export function Viewport() {
       />
       <axesHelper args={[4]} />
 
-      <OrbitControls
-        makeDefault
-        enableDamping
-        dampingFactor={0.08}
-        maxPolarAngle={Math.PI / 2.05}
-        target={[0, 1, 0]}
-      />
+      {!playerEnabled && (
+        <OrbitControls
+          makeDefault
+          enableDamping
+          dampingFactor={0.08}
+          maxPolarAngle={Math.PI / 2.05}
+          target={[0, 1, 0]}
+        />
+      )}
     </Canvas>
   );
 }
