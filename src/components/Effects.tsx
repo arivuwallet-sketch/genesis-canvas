@@ -7,6 +7,8 @@ import {
   SSAO,
 } from "@react-three/postprocessing";
 import { BlendFunction, ToneMappingMode } from "postprocessing";
+import { useThree } from "@react-three/fiber";
+import { useMemo } from "react";
 import { useEditorStore } from "../store/useEditorStore";
 import { playerPosition } from "../state/playerTransform";
 
@@ -20,13 +22,33 @@ import { playerPosition } from "../state/playerTransform";
  */
 export function Effects() {
   const quality = useEditorStore((s) => s.graphicsQuality);
+  const gl = useThree((s) => s.gl);
 
-  const ssao = quality !== "low";
+  /**
+   * SSAO needs a normal/depth pass with MRT support. Software rasterizers
+   * (SwiftShader / llvmpipe, common in VMs and headless browsers) advertise
+   * WebGL2 but render the pass black, so AO is skipped there.
+   */
+  const supportsAO = useMemo(() => {
+    try {
+      const ctx = gl.getContext() as WebGL2RenderingContext;
+      const info = ctx.getExtension("WEBGL_debug_renderer_info");
+      const name = info
+        ? String(ctx.getParameter(info.UNMASKED_RENDERER_WEBGL))
+        : "";
+      const software = /swiftshader|llvmpipe|software|mesa offscreen/i.test(name);
+      return !software && !!ctx.getExtension("EXT_color_buffer_float");
+    } catch {
+      return false;
+    }
+  }, [gl]);
+
+  const ssao = quality !== "low" && supportsAO;
   const dof = quality === "ultra";
 
   return (
     <EffectComposer
-      key={quality}
+      key={`${quality}-${ssao}`}
       multisampling={0}
       enableNormalPass={ssao}
     >
