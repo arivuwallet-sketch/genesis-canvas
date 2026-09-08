@@ -118,7 +118,9 @@ function Transcript() {
 export function OverlayUI() {
   const chatInput = useEditorStore((s) => s.chatInput);
   const setChatInput = useEditorStore((s) => s.setChatInput);
-  const submitPrompt = useEditorStore((s) => s.submitPrompt);
+  const submitPrompt = useAiCommand();
+  const aiThinking = useEditorStore((s) => s.aiThinking);
+  const streamText = useEditorStore((s) => s.streamText);
   const showPerf = useEditorStore((s) => s.showPerf);
   const togglePerf = useEditorStore((s) => s.togglePerf);
   const cameraMode = useEditorStore((s) => s.cameraMode);
