@@ -195,6 +195,18 @@ export function OverlayUI() {
       <div className="pointer-events-auto absolute inset-x-0 bottom-0 flex justify-center px-4 pb-7">
         <div className="w-full max-w-2xl">
           <Transcript />
+          {aiThinking && (
+            <div className="glass-panel mb-3 flex items-start gap-3 rounded-2xl px-4 py-3 text-xs text-primary/85">
+              <span className="mt-0.5 flex gap-1">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary [animation-delay:150ms]" />
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary [animation-delay:300ms]" />
+              </span>
+              <span className="min-w-0 flex-1 truncate font-mono">
+                {streamText.trim().slice(-160) || "Thinking…"}
+              </span>
+            </div>
+          )}
           <form
             onSubmit={(e) => {
               e.preventDefault();
