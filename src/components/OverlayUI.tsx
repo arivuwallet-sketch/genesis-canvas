@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useEditorStore, type GraphicsQuality } from "../store/useEditorStore";
 import { useNetworkSync } from "../hooks/useNetworkSync";
+import { useAiCommand } from "../hooks/useAiCommand";
 import { hudTunnel } from "./hud/Diagnostics";
 
 const QUALITY: { value: GraphicsQuality; label: string }[] = [
