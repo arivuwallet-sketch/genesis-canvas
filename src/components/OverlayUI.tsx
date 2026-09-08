@@ -218,14 +218,15 @@ export function OverlayUI() {
             <input
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
-              placeholder='Try "spawn robot" or "clear"…'
+              placeholder='Try "spawn a falling red box" or "clear"…'
               className="min-w-0 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/70 focus:outline-none"
             />
             <button
               type="submit"
-              className="rounded-lg border border-primary/35 bg-primary/12 px-3 py-1.5 text-[11px] uppercase tracking-[0.16em] text-primary transition-colors hover:bg-primary/22"
+              disabled={aiThinking}
+              className="rounded-lg border border-primary/35 bg-primary/12 px-3 py-1.5 text-[11px] uppercase tracking-[0.16em] text-primary transition-colors hover:bg-primary/22 disabled:opacity-40"
             >
-              Send
+              {aiThinking ? "…" : "Send"}
             </button>
           </form>
         </div>
