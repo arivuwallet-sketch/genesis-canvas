@@ -52,11 +52,15 @@ export function Viewport() {
             scale={[20, 3, 1]}
           />
         </Environment>
+      </Suspense>
 
+      <Suspense fallback={null}>
         <PlayerKeyboardProvider>
           <PhysicsWorld />
         </PlayerKeyboardProvider>
+      </Suspense>
 
+      <Suspense fallback={null}>
         <RemotePlayers />
       </Suspense>
 

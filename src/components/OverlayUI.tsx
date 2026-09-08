@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useEditorStore, type GraphicsQuality } from "../store/useEditorStore";
 import { useNetworkSync } from "../hooks/useNetworkSync";
+import { useAiCommand } from "../hooks/useAiCommand";
 import { hudTunnel } from "./hud/Diagnostics";
 
 const QUALITY: { value: GraphicsQuality; label: string }[] = [
@@ -118,7 +119,9 @@ function Transcript() {
 export function OverlayUI() {
   const chatInput = useEditorStore((s) => s.chatInput);
   const setChatInput = useEditorStore((s) => s.setChatInput);
-  const submitPrompt = useEditorStore((s) => s.submitPrompt);
+  const submitPrompt = useAiCommand();
+  const aiThinking = useEditorStore((s) => s.aiThinking);
+  const streamText = useEditorStore((s) => s.streamText);
   const showPerf = useEditorStore((s) => s.showPerf);
   const togglePerf = useEditorStore((s) => s.togglePerf);
   const cameraMode = useEditorStore((s) => s.cameraMode);
@@ -192,6 +195,18 @@ export function OverlayUI() {
       <div className="pointer-events-auto absolute inset-x-0 bottom-0 flex justify-center px-4 pb-7">
         <div className="w-full max-w-2xl">
           <Transcript />
+          {aiThinking && (
+            <div className="glass-panel mb-3 flex items-start gap-3 rounded-2xl px-4 py-3 text-xs text-primary/85">
+              <span className="mt-0.5 flex gap-1">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary [animation-delay:150ms]" />
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary [animation-delay:300ms]" />
+              </span>
+              <span className="min-w-0 flex-1 truncate font-mono">
+                {streamText.trim().slice(-160) || "Thinking…"}
+              </span>
+            </div>
+          )}
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -203,14 +218,15 @@ export function OverlayUI() {
             <input
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
-              placeholder='Try "spawn robot" or "clear"…'
+              placeholder='Try "spawn a falling red box" or "clear"…'
               className="min-w-0 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/70 focus:outline-none"
             />
             <button
               type="submit"
-              className="rounded-lg border border-primary/35 bg-primary/12 px-3 py-1.5 text-[11px] uppercase tracking-[0.16em] text-primary transition-colors hover:bg-primary/22"
+              disabled={aiThinking}
+              className="rounded-lg border border-primary/35 bg-primary/12 px-3 py-1.5 text-[11px] uppercase tracking-[0.16em] text-primary transition-colors hover:bg-primary/22 disabled:opacity-40"
             >
-              Send
+              {aiThinking ? "…" : "Send"}
             </button>
           </form>
         </div>
