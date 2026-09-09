@@ -29,8 +29,9 @@ export function useAiCommand() {
     store.setChatInput("");
     store.pushLog(prompt, "user");
 
-    if (localShortcut(prompt)) {
-      store.pushLog("World cleared.", "system");
+    const shortcut = localShortcut(prompt);
+    if (shortcut) {
+      store.pushLog(shortcut, "system");
       return;
     }
 
