@@ -199,7 +199,9 @@ function toObjectPatch(cmd: Record<string, unknown>): Partial<SpawnedObject> {
 
 function resolveTargetId(cmd: Record<string, unknown>): string | null {
   const raw = cmd["targetId"] ?? cmd["id"] ?? cmd["target"];
-  const objects = useEditorStore.getState().spawnedObjects;
+  const state = useEditorStore.getState();
+  const objects = state.spawnedObjects;
+  if (raw === undefined && state.selectedId) return state.selectedId;
   if (typeof raw === "string") {
     const byId = objects.find((o) => o.id === raw);
     if (byId) return byId.id;
@@ -279,6 +281,21 @@ export function applyCommand(input: unknown): CommandResult {
       if (!id) return { ok: false, message: "No matching entity to remove." };
       store.removeObject(id);
       return { ok: true, message: `Removed entity ${id.slice(0, 6)}.` };
+    }
+
+    case "carve":
+    case "subtract":
+    case "hole": {
+      const id = resolveTargetId(input);
+      if (!id) return { ok: false, message: "Select an entity to carve first." };
+      const at = vec3(input["position"] ?? input["at"] ?? input["point"], [0, 0, 0], -5, 5) ?? [
+        0, 0, 0,
+      ];
+      const radius = num(input["radius"] ?? input["size"], 0.35, 0.05, 3);
+      const ok = store.carveObject(id, { position: at, radius });
+      return ok
+        ? { ok: true, message: `Carved a ${radius.toFixed(2)}m hole in ${id.slice(0, 6)}.` }
+        : { ok: false, message: "Carve failed — entity missing." };
     }
 
     case "clear":

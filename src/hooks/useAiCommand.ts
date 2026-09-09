@@ -3,13 +3,19 @@ import { useEditorStore } from "../store/useEditorStore";
 import { applyAiResponse, applyCommand } from "../utils/CommandParser";
 
 /** Instant local shortcuts so obvious commands never wait on the network. */
-function localShortcut(prompt: string): boolean {
+function localShortcut(prompt: string): string | null {
   const p = prompt.toLowerCase().trim();
   if (/^(clear|reset)\b/.test(p)) {
     applyCommand({ action: "clear" });
-    return true;
+    return "World cleared.";
   }
-  return false;
+  // "carve hole in wall" / "carve a 0.5 hole" — instant CSG on the selection.
+  if (/\b(carve|cut|drill|punch)\b/.test(p) && /\b(hole|opening|window)\b/.test(p)) {
+    const radius = Number(/([0-9]*\.?[0-9]+)\s*m?\b/.exec(p)?.[1] ?? 0.35);
+    return applyCommand({ action: "carve", radius: Number.isFinite(radius) ? radius : 0.35 })
+      .message;
+  }
+  return null;
 }
 
 export function useAiCommand() {
