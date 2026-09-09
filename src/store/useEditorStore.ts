@@ -142,6 +142,7 @@ export function createSpawnedObject(patch: Partial<SpawnedObject>): SpawnedObjec
     rotation: patch.rotation ?? [0, 0, 0],
     scale: patch.scale ?? [1, 1, 1],
     physics: { ...DEFAULT_PHYSICS, ...(patch.physics ?? {}) },
+    carves: patch.carves ?? [],
   };
 }
 
@@ -178,8 +179,31 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     return true;
   },
   removeObject: (id) =>
-    set((s) => ({ spawnedObjects: s.spawnedObjects.filter((o) => o.id !== id) })),
-  clearObjects: () => set({ spawnedObjects: [] }),
+    set((s) => ({
+      spawnedObjects: s.spawnedObjects.filter((o) => o.id !== id),
+      selectedId: s.selectedId === id ? null : s.selectedId,
+    })),
+  clearObjects: () => set({ spawnedObjects: [], selectedId: null }),
+  carveObject: (id, carve) => {
+    const exists = get().spawnedObjects.some((o) => o.id === id);
+    if (!exists) return false;
+    set((s) => ({
+      spawnedObjects: s.spawnedObjects.map((o) =>
+        o.id === id ? { ...o, carves: [...o.carves, carve].slice(-12) } : o,
+      ),
+    }));
+    return true;
+  },
+
+  selectedId: null,
+  setSelectedId: (id) => set({ selectedId: id }),
+  transformMode: "translate",
+  setTransformMode: (mode) => set({ transformMode: mode }),
+
+  webgpuEnabled: false,
+  setWebgpuEnabled: (v) => set({ webgpuEnabled: v }),
+  rendererLabel: "WebGL2",
+  setRendererLabel: (label) => set({ rendererLabel: label }),
 
   cameraMode: "third",
   toggleCameraMode: () =>
