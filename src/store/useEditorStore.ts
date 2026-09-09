@@ -25,6 +25,14 @@ export interface PhysicsProps {
   gravityScale: number;
 }
 
+export type TransformMode = "translate" | "rotate" | "scale";
+
+/** A spherical bite taken out of the mesh by a CSG subtraction. */
+export interface Carve {
+  position: [number, number, number];
+  radius: number;
+}
+
 export interface SpawnedObject {
   id: string;
   name: string;
@@ -40,6 +48,8 @@ export interface SpawnedObject {
   rotation: [number, number, number];
   scale: [number, number, number];
   physics: PhysicsProps;
+  /** CSG subtractions applied to this entity's geometry. */
+  carves: Carve[];
 }
 
 export interface LogEntry {
@@ -69,6 +79,19 @@ interface EditorState {
   updateObject: (id: string, patch: Partial<SpawnedObject>) => boolean;
   removeObject: (id: string) => void;
   clearObjects: () => void;
+  carveObject: (id: string, carve: Carve) => boolean;
+
+  /* selection + gizmos */
+  selectedId: string | null;
+  setSelectedId: (id: string | null) => void;
+  transformMode: TransformMode;
+  setTransformMode: (mode: TransformMode) => void;
+
+  /* renderer */
+  webgpuEnabled: boolean;
+  setWebgpuEnabled: (v: boolean) => void;
+  rendererLabel: string;
+  setRendererLabel: (label: string) => void;
 
   /* player + camera */
   cameraMode: CameraMode;
@@ -119,6 +142,7 @@ export function createSpawnedObject(patch: Partial<SpawnedObject>): SpawnedObjec
     rotation: patch.rotation ?? [0, 0, 0],
     scale: patch.scale ?? [1, 1, 1],
     physics: { ...DEFAULT_PHYSICS, ...(patch.physics ?? {}) },
+    carves: patch.carves ?? [],
   };
 }
 
@@ -155,8 +179,31 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     return true;
   },
   removeObject: (id) =>
-    set((s) => ({ spawnedObjects: s.spawnedObjects.filter((o) => o.id !== id) })),
-  clearObjects: () => set({ spawnedObjects: [] }),
+    set((s) => ({
+      spawnedObjects: s.spawnedObjects.filter((o) => o.id !== id),
+      selectedId: s.selectedId === id ? null : s.selectedId,
+    })),
+  clearObjects: () => set({ spawnedObjects: [], selectedId: null }),
+  carveObject: (id, carve) => {
+    const exists = get().spawnedObjects.some((o) => o.id === id);
+    if (!exists) return false;
+    set((s) => ({
+      spawnedObjects: s.spawnedObjects.map((o) =>
+        o.id === id ? { ...o, carves: [...o.carves, carve].slice(-12) } : o,
+      ),
+    }));
+    return true;
+  },
+
+  selectedId: null,
+  setSelectedId: (id) => set({ selectedId: id }),
+  transformMode: "translate",
+  setTransformMode: (mode) => set({ transformMode: mode }),
+
+  webgpuEnabled: false,
+  setWebgpuEnabled: (v) => set({ webgpuEnabled: v }),
+  rendererLabel: "WebGL2",
+  setRendererLabel: (label) => set({ rendererLabel: label }),
 
   cameraMode: "third",
   toggleCameraMode: () =>
