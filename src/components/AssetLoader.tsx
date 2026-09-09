@@ -174,22 +174,25 @@ function SpawnedEntity({ object }: { object: SpawnedObject }) {
       friction={physics.friction}
       gravityScale={physics.gravityScale}
       canSleep
-      onPointerDown={(e) => {
-        e.stopPropagation();
-        setSelectedId(object.id);
-      }}
     >
-      {object.kind === "model" && object.modelUrl ? (
-        <ModelErrorBoundary
-          fallback={<FallbackVolume scale={object.scale} label="Procedural stand-in" />}
-        >
-          <Suspense fallback={<FallbackVolume scale={object.scale} />}>
-            <GLTFModel url={object.modelUrl} scale={object.scale} />
-          </Suspense>
-        </ModelErrorBoundary>
-      ) : (
-        <PrimitiveMesh object={object} selected={selected} />
-      )}
+      <group
+        onPointerDown={(e) => {
+          e.stopPropagation();
+          setSelectedId(object.id);
+        }}
+      >
+        {object.kind === "model" && object.modelUrl ? (
+          <ModelErrorBoundary
+            fallback={<FallbackVolume scale={object.scale} label="Procedural stand-in" />}
+          >
+            <Suspense fallback={<FallbackVolume scale={object.scale} />}>
+              <GLTFModel url={object.modelUrl} scale={object.scale} />
+            </Suspense>
+          </ModelErrorBoundary>
+        ) : (
+          <PrimitiveMesh object={object} selected={selected} />
+        )}
+      </group>
     </RigidBody>
   );
 }
