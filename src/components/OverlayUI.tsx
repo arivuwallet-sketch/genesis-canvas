@@ -189,8 +189,29 @@ export function OverlayUI() {
           >
             Perf {showPerf ? "on" : "off"} · P
           </button>
+          <button
+            onClick={() => setWebgpuEnabled(!webgpuEnabled)}
+            className={`${pill} ${webgpuEnabled ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
+            title={rendererLabel}
+          >
+            {webgpuEnabled ? rendererLabel : "WebGL2"}
+          </button>
         </div>
       </header>
+
+      {!playerEnabled && selectedId && (
+        <div className="pointer-events-auto absolute left-1/2 top-20 flex -translate-x-1/2 gap-2">
+          {(["translate", "rotate", "scale"] as const).map((mode, i) => (
+            <button
+              key={mode}
+              onClick={() => setTransformMode(mode)}
+              className={`${pill} ${transformMode === mode ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
+            >
+              {mode} · {["T", "R", "S"][i]}
+            </button>
+          ))}
+        </div>
+      )}
 
       <LoadingBar />
       <EntityList />
