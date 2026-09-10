@@ -128,6 +128,13 @@ export function OverlayUI() {
   const toggleCameraMode = useEditorStore((s) => s.toggleCameraMode);
   const playerEnabled = useEditorStore((s) => s.playerEnabled);
   const setPlayerEnabled = useEditorStore((s) => s.setPlayerEnabled);
+  const webgpuEnabled = useEditorStore((s) => s.webgpuEnabled);
+  const setWebgpuEnabled = useEditorStore((s) => s.setWebgpuEnabled);
+  const rendererLabel = useEditorStore((s) => s.rendererLabel);
+  const transformMode = useEditorStore((s) => s.transformMode);
+  const setTransformMode = useEditorStore((s) => s.setTransformMode);
+  const selectedId = useEditorStore((s) => s.selectedId);
+  const setSelectedId = useEditorStore((s) => s.setSelectedId);
 
   // Socket lifecycle + listeners live entirely in this hook.
   useNetworkSync();
@@ -139,10 +146,14 @@ export function OverlayUI() {
       const key = e.key.toLowerCase();
       if (key === "p") togglePerf();
       if (key === "c") toggleCameraMode();
+      if (key === "t") setTransformMode("translate");
+      if (key === "r") setTransformMode("rotate");
+      if (key === "s") setTransformMode("scale");
+      if (e.key === "Escape") setSelectedId(null);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [togglePerf, toggleCameraMode]);
+  }, [togglePerf, toggleCameraMode, setTransformMode, setSelectedId]);
 
   const pill =
     "glass-panel rounded-full px-4 py-2 text-[11px] uppercase tracking-[0.18em] transition-colors";
