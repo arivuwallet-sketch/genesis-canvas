@@ -128,6 +128,13 @@ export function OverlayUI() {
   const toggleCameraMode = useEditorStore((s) => s.toggleCameraMode);
   const playerEnabled = useEditorStore((s) => s.playerEnabled);
   const setPlayerEnabled = useEditorStore((s) => s.setPlayerEnabled);
+  const webgpuEnabled = useEditorStore((s) => s.webgpuEnabled);
+  const setWebgpuEnabled = useEditorStore((s) => s.setWebgpuEnabled);
+  const rendererLabel = useEditorStore((s) => s.rendererLabel);
+  const transformMode = useEditorStore((s) => s.transformMode);
+  const setTransformMode = useEditorStore((s) => s.setTransformMode);
+  const selectedId = useEditorStore((s) => s.selectedId);
+  const setSelectedId = useEditorStore((s) => s.setSelectedId);
 
   // Socket lifecycle + listeners live entirely in this hook.
   useNetworkSync();
@@ -139,10 +146,14 @@ export function OverlayUI() {
       const key = e.key.toLowerCase();
       if (key === "p") togglePerf();
       if (key === "c") toggleCameraMode();
+      if (key === "t") setTransformMode("translate");
+      if (key === "r") setTransformMode("rotate");
+      if (key === "s") setTransformMode("scale");
+      if (e.key === "Escape") setSelectedId(null);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [togglePerf, toggleCameraMode]);
+  }, [togglePerf, toggleCameraMode, setTransformMode, setSelectedId]);
 
   const pill =
     "glass-panel rounded-full px-4 py-2 text-[11px] uppercase tracking-[0.18em] transition-colors";
@@ -178,8 +189,29 @@ export function OverlayUI() {
           >
             Perf {showPerf ? "on" : "off"} · P
           </button>
+          <button
+            onClick={() => setWebgpuEnabled(!webgpuEnabled)}
+            className={`${pill} ${webgpuEnabled ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
+            title={rendererLabel}
+          >
+            {webgpuEnabled ? rendererLabel : "WebGL2"}
+          </button>
         </div>
       </header>
+
+      {!playerEnabled && selectedId && (
+        <div className="pointer-events-auto absolute left-1/2 top-20 flex -translate-x-1/2 gap-2">
+          {(["translate", "rotate", "scale"] as const).map((mode, i) => (
+            <button
+              key={mode}
+              onClick={() => setTransformMode(mode)}
+              className={`${pill} ${transformMode === mode ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
+            >
+              {mode} · {["T", "R", "S"][i]}
+            </button>
+          ))}
+        </div>
+      )}
 
       <LoadingBar />
       <EntityList />
