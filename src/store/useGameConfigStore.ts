@@ -276,8 +276,8 @@ const clearTimers = () => {
 };
 
 export const useGameConfigStore = create<GameConfigState>((set, get) => ({
-  primaryGenre: GENRE_MATRIX[0].genre,
-  subGenre: GENRE_MATRIX[0].subGenres[0],
+  primaryGenre: GENRE_MATRIX[0]?.genre ?? "Action",
+  subGenre: GENRE_MATRIX[0]?.subGenres[0] ?? "Hack and Slash",
   multiplayerMode: "Singleplayer",
   blueprintOpen: false,
   setPrimaryGenre: (genre) => {
