@@ -3,6 +3,12 @@ import { useEditorStore, type GraphicsQuality } from "../store/useEditorStore";
 import { useNetworkSync } from "../hooks/useNetworkSync";
 import { useAiCommand } from "../hooks/useAiCommand";
 import { hudTunnel } from "./hud/Diagnostics";
+import { useGameConfigStore } from "../store/useGameConfigStore";
+import { GenreSelector } from "./blueprint/GenreSelector";
+import { AgentTabs, AgentPanel } from "./agents/AgentTabs";
+import { PipelineView } from "./agents/PipelineView";
+import { ChatMenuCard, PlacedMenus } from "./agents/GameMenuWidget";
+import { CharacterBehaviorPanel } from "./CharacterBehaviorPanel";
 
 const QUALITY: { value: GraphicsQuality; label: string }[] = [
   { value: "low", label: "Low" },
@@ -136,8 +142,38 @@ export function OverlayUI() {
   const selectedId = useEditorStore((s) => s.selectedId);
   const setSelectedId = useEditorStore((s) => s.setSelectedId);
 
+  const activeTab = useGameConfigStore((s) => s.activeTab);
+  const runMasterPrompt = useGameConfigStore((s) => s.runMasterPrompt);
+  const pipelineRunning = useGameConfigStore((s) => s.pipelineRunning);
+  const menus = useGameConfigStore((s) => s.menus);
+  const dockedMenus = menus.filter((m) => !m.placed);
+  const placeMenu = useGameConfigStore((s) => s.placeMenu);
+  const characters = useGameConfigStore((s) => s.characters);
+  const characterPanelOpen = useGameConfigStore((s) => s.characterPanelOpen);
+  const setCharacterPanelOpen = useGameConfigStore((s) => s.setCharacterPanelOpen);
+
   // Socket lifecycle + listeners live entirely in this hook.
   useNetworkSync();
+
+  // Menus dragged out of the chat feed land on the viewport overlay.
+  useEffect(() => {
+    const onDragOver = (e: DragEvent) => {
+      if (e.dataTransfer?.types.includes("text/menu-id")) e.preventDefault();
+    };
+    const onDrop = (e: DragEvent) => {
+      const id = e.dataTransfer?.getData("text/menu-id");
+      if (!id) return;
+      e.preventDefault();
+      placeMenu(id, Math.max(8, e.clientX - 100), Math.max(8, e.clientY - 20));
+    };
+    window.addEventListener("dragover", onDragOver);
+    window.addEventListener("drop", onDrop);
+    return () => {
+      window.removeEventListener("dragover", onDragOver);
+      window.removeEventListener("drop", onDrop);
+    };
+  }, [placeMenu]);
+
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -170,6 +206,14 @@ export function OverlayUI() {
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-2">
+          {characters.length > 0 && (
+            <button
+              onClick={() => setCharacterPanelOpen(!characterPanelOpen)}
+              className={`${pill} ${characterPanelOpen ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
+            >
+              Characters · {characters.length}
+            </button>
+          )}
           <button
             onClick={() => setPlayerEnabled(!playerEnabled)}
             className={`${pill} ${playerEnabled ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
@@ -215,6 +259,8 @@ export function OverlayUI() {
 
       <LoadingBar />
       <EntityList />
+      <CharacterBehaviorPanel />
+      <PlacedMenus />
       <hudTunnel.Out />
 
       {playerEnabled && (
@@ -226,6 +272,11 @@ export function OverlayUI() {
       {/* Bottom prompt bar */}
       <div className="pointer-events-auto absolute inset-x-0 bottom-0 flex justify-center px-4 pb-7">
         <div className="w-full max-w-2xl">
+          <AgentPanel />
+          <PipelineView />
+          {dockedMenus.map((m) => (
+            <ChatMenuCard key={m.id} menu={m} />
+          ))}
           <Transcript />
           {aiThinking && (
             <div className="glass-panel mb-3 flex items-start gap-3 rounded-2xl px-4 py-3 text-xs text-primary/85">
@@ -239,9 +290,14 @@ export function OverlayUI() {
               </span>
             </div>
           )}
+          <GenreSelector />
+          <AgentTabs />
           <form
             onSubmit={(e) => {
               e.preventDefault();
+              const prompt = chatInput.trim();
+              if (!prompt) return;
+              if (activeTab === "master") runMasterPrompt(prompt);
               submitPrompt();
             }}
             className="glass-panel flex w-full items-center gap-3 rounded-2xl px-4 py-3"
@@ -250,15 +306,19 @@ export function OverlayUI() {
             <input
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
-              placeholder='Try "spawn a falling red box" or "clear"…'
+              placeholder={
+                activeTab === "master"
+                  ? 'Master prompt — e.g. "build a racing level with a main menu"…'
+                  : 'Try "spawn a falling red box" or "clear"…'
+              }
               className="min-w-0 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/70 focus:outline-none"
             />
             <button
               type="submit"
-              disabled={aiThinking}
+              disabled={aiThinking || pipelineRunning}
               className="rounded-lg border border-primary/35 bg-primary/12 px-3 py-1.5 text-[11px] uppercase tracking-[0.16em] text-primary transition-colors hover:bg-primary/22 disabled:opacity-40"
             >
-              {aiThinking ? "…" : "Send"}
+              {aiThinking || pipelineRunning ? "…" : "Send"}
             </button>
           </form>
         </div>
