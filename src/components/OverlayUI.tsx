@@ -145,7 +145,8 @@ export function OverlayUI() {
   const activeTab = useGameConfigStore((s) => s.activeTab);
   const runMasterPrompt = useGameConfigStore((s) => s.runMasterPrompt);
   const pipelineRunning = useGameConfigStore((s) => s.pipelineRunning);
-  const dockedMenus = useGameConfigStore((s) => s.menus.filter((m) => !m.placed));
+  const menus = useGameConfigStore((s) => s.menus);
+  const dockedMenus = menus.filter((m) => !m.placed);
   const placeMenu = useGameConfigStore((s) => s.placeMenu);
   const characters = useGameConfigStore((s) => s.characters);
   const characterPanelOpen = useGameConfigStore((s) => s.characterPanelOpen);
