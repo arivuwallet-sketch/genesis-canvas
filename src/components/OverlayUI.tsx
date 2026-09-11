@@ -250,6 +250,8 @@ export function OverlayUI() {
 
       <LoadingBar />
       <EntityList />
+      <CharacterBehaviorPanel />
+      <PlacedMenus />
       <hudTunnel.Out />
 
       {playerEnabled && (
