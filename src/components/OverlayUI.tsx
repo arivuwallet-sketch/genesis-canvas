@@ -205,6 +205,14 @@ export function OverlayUI() {
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-2">
+          {characters.length > 0 && (
+            <button
+              onClick={() => setCharacterPanelOpen(!characterPanelOpen)}
+              className={`${pill} ${characterPanelOpen ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
+            >
+              Characters · {characters.length}
+            </button>
+          )}
           <button
             onClick={() => setPlayerEnabled(!playerEnabled)}
             className={`${pill} ${playerEnabled ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
