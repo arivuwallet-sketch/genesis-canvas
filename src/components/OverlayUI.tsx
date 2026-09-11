@@ -305,7 +305,11 @@ export function OverlayUI() {
             <input
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
-              placeholder='Try "spawn a falling red box" or "clear"…'
+              placeholder={
+                activeTab === "master"
+                  ? 'Master prompt — e.g. "build a racing level with a main menu"…'
+                  : 'Try "spawn a falling red box" or "clear"…'
+              }
               className="min-w-0 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/70 focus:outline-none"
             />
             <button
