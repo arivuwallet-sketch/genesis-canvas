@@ -314,10 +314,10 @@ export function OverlayUI() {
             />
             <button
               type="submit"
-              disabled={aiThinking}
+              disabled={aiThinking || pipelineRunning}
               className="rounded-lg border border-primary/35 bg-primary/12 px-3 py-1.5 text-[11px] uppercase tracking-[0.16em] text-primary transition-colors hover:bg-primary/22 disabled:opacity-40"
             >
-              {aiThinking ? "…" : "Send"}
+              {aiThinking || pipelineRunning ? "…" : "Send"}
             </button>
           </form>
         </div>
