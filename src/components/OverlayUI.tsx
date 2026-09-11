@@ -263,6 +263,11 @@ export function OverlayUI() {
       {/* Bottom prompt bar */}
       <div className="pointer-events-auto absolute inset-x-0 bottom-0 flex justify-center px-4 pb-7">
         <div className="w-full max-w-2xl">
+          <AgentPanel />
+          <PipelineView />
+          {dockedMenus.map((m) => (
+            <ChatMenuCard key={m.id} menu={m} />
+          ))}
           <Transcript />
           {aiThinking && (
             <div className="glass-panel mb-3 flex items-start gap-3 rounded-2xl px-4 py-3 text-xs text-primary/85">
