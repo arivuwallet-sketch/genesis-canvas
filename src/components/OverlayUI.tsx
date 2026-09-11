@@ -281,9 +281,14 @@ export function OverlayUI() {
               </span>
             </div>
           )}
+          <GenreSelector />
+          <AgentTabs />
           <form
             onSubmit={(e) => {
               e.preventDefault();
+              const prompt = chatInput.trim();
+              if (!prompt) return;
+              if (activeTab === "master") runMasterPrompt(prompt);
               submitPrompt();
             }}
             className="glass-panel flex w-full items-center gap-3 rounded-2xl px-4 py-3"
