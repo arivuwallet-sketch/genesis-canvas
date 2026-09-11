@@ -3,39 +3,45 @@ import {
   ToneMapping,
   DepthOfField,
   EffectComposer,
+  FXAA,
   SMAA,
   SSAO,
+  TiltShift2,
 } from "@react-three/postprocessing";
 import { BlendFunction, ToneMappingMode } from "postprocessing";
 import { useEditorStore } from "../store/useEditorStore";
+import { useGraphicsStore } from "../store/useGraphicsStore";
 import { playerPosition } from "../state/playerTransform";
 
 /**
- * Cinematic post stack. Effects are gated by the Graphics Quality preset so
- * the frame budget stays under ~16 ms on weaker GPUs.
- *
- *  low    → SMAA + subtle bloom            (no SSAO, no DoF)
- *  medium → SMAA + bloom + SSAO
- *  ultra  → SMAA + bloom + SSAO + DoF
+ * Post stack driven by the graphics settings menu. Every effect is mounted
+ * conditionally so disabled passes cost nothing, and the legacy quality
+ * preset still tunes sample counts for the frame budget.
  */
 export function Effects() {
   const quality = useEditorStore((s) => s.graphicsQuality);
-  const ssao = quality !== "low";
-  const dof = quality === "ultra";
+  const bloom = useGraphicsStore((s) => s.bloom);
+  const bloomIntensity = useGraphicsStore((s) => s.bloomIntensity);
+  const ssao = useGraphicsStore((s) => s.ambientOcclusion);
+  const dof = useGraphicsStore((s) => s.depthOfField);
+  const motionBlur = useGraphicsStore((s) => s.motionBlur);
+  const aa = useGraphicsStore((s) => s.antiAliasing);
+
+  const key = `${quality}-${bloom}-${ssao}-${dof}-${motionBlur}-${aa}`;
 
   return (
-    <EffectComposer
-      key={quality}
-      multisampling={0}
-      enableNormalPass={ssao}
-    >
-      <Bloom
-        intensity={quality === "low" ? 0.35 : 0.75}
-        luminanceThreshold={0.9}
-        luminanceSmoothing={0.25}
-        mipmapBlur
-        radius={0.72}
-      />
+    <EffectComposer key={key} multisampling={0} enableNormalPass={ssao}>
+      {bloom ? (
+        <Bloom
+          intensity={bloomIntensity}
+          luminanceThreshold={0.9}
+          luminanceSmoothing={0.25}
+          mipmapBlur
+          radius={0.72}
+        />
+      ) : (
+        <></>
+      )}
       {ssao ? (
         <SSAO
           blendFunction={BlendFunction.MULTIPLY}
@@ -59,8 +65,9 @@ export function Effects() {
       ) : (
         <></>
       )}
+      {motionBlur ? <TiltShift2 blur={0.12} /> : <></>}
       <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
-      <SMAA />
+      {aa === "smaa" ? <SMAA /> : aa === "fxaa" ? <FXAA /> : <></>}
     </EffectComposer>
   );
 }
