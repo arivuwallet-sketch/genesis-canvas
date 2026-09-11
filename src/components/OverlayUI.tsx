@@ -142,8 +142,37 @@ export function OverlayUI() {
   const selectedId = useEditorStore((s) => s.selectedId);
   const setSelectedId = useEditorStore((s) => s.setSelectedId);
 
+  const activeTab = useGameConfigStore((s) => s.activeTab);
+  const runMasterPrompt = useGameConfigStore((s) => s.runMasterPrompt);
+  const pipelineRunning = useGameConfigStore((s) => s.pipelineRunning);
+  const dockedMenus = useGameConfigStore((s) => s.menus.filter((m) => !m.placed));
+  const placeMenu = useGameConfigStore((s) => s.placeMenu);
+  const characters = useGameConfigStore((s) => s.characters);
+  const characterPanelOpen = useGameConfigStore((s) => s.characterPanelOpen);
+  const setCharacterPanelOpen = useGameConfigStore((s) => s.setCharacterPanelOpen);
+
   // Socket lifecycle + listeners live entirely in this hook.
   useNetworkSync();
+
+  // Menus dragged out of the chat feed land on the viewport overlay.
+  useEffect(() => {
+    const onDragOver = (e: DragEvent) => {
+      if (e.dataTransfer?.types.includes("text/menu-id")) e.preventDefault();
+    };
+    const onDrop = (e: DragEvent) => {
+      const id = e.dataTransfer?.getData("text/menu-id");
+      if (!id) return;
+      e.preventDefault();
+      placeMenu(id, Math.max(8, e.clientX - 100), Math.max(8, e.clientY - 20));
+    };
+    window.addEventListener("dragover", onDragOver);
+    window.addEventListener("drop", onDrop);
+    return () => {
+      window.removeEventListener("dragover", onDragOver);
+      window.removeEventListener("drop", onDrop);
+    };
+  }, [placeMenu]);
+
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
