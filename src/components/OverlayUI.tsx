@@ -3,6 +3,12 @@ import { useEditorStore, type GraphicsQuality } from "../store/useEditorStore";
 import { useNetworkSync } from "../hooks/useNetworkSync";
 import { useAiCommand } from "../hooks/useAiCommand";
 import { hudTunnel } from "./hud/Diagnostics";
+import { useGameConfigStore } from "../store/useGameConfigStore";
+import { GenreSelector } from "./blueprint/GenreSelector";
+import { AgentTabs, AgentPanel } from "./agents/AgentTabs";
+import { PipelineView } from "./agents/PipelineView";
+import { ChatMenuCard, PlacedMenus } from "./agents/GameMenuWidget";
+import { CharacterBehaviorPanel } from "./CharacterBehaviorPanel";
 
 const QUALITY: { value: GraphicsQuality; label: string }[] = [
   { value: "low", label: "Low" },
