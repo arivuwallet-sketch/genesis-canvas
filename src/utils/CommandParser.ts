@@ -117,18 +117,22 @@ function geometry(v: unknown): PrimitiveGeometry | null {
   return null;
 }
 
-/** Only URLs we actually host are honoured — hallucinated models fall back. */
-function modelUrl(v: unknown): string | null {
+/**
+ * Resolve any model reference to a library entry we actually host.
+ * Exact URL/name first, then keyword matching, so "a red sports car" or
+ * "/models/ferrari.glb" both land on a real asset instead of a box.
+ */
+function resolveModel(v: unknown): CatalogEntry | null {
   if (typeof v !== "string") return null;
   const s = v.trim();
-  const known = MODEL_CATALOG.find(
+  if (!s) return null;
+  const exact = MODEL_CATALOG.find(
     (e) => e.modelUrl === s || e.name.toLowerCase() === s.toLowerCase(),
   );
-  if (known) return known.modelUrl;
-  if (s.startsWith("/models/") && s.endsWith(".glb")) {
-    return MODEL_CATALOG.some((e) => e.modelUrl === s) ? s : null;
-  }
-  return null;
+  if (exact) return exact;
+  // Hallucinated path like /models/ferrari.glb → match on the file stem.
+  const stem = s.replace(/^.*\//, "").replace(/\.(glb|gltf)$/i, "").replace(/[-_]+/g, " ");
+  return matchCatalog(stem) ?? matchCatalog(s);
 }
 
 function physics(v: unknown): Partial<PhysicsProps> {
