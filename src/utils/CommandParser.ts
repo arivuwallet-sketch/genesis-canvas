@@ -12,7 +12,7 @@ import {
   type PrimitiveGeometry,
   type SpawnedObject,
 } from "../store/useEditorStore";
-import { MODEL_CATALOG } from "./assetManager";
+import { MODEL_CATALOG, matchCatalog, type CatalogEntry } from "./assetManager";
 
 const GEOMETRIES: PrimitiveGeometry[] = [
   "box",
@@ -117,18 +117,22 @@ function geometry(v: unknown): PrimitiveGeometry | null {
   return null;
 }
 
-/** Only URLs we actually host are honoured — hallucinated models fall back. */
-function modelUrl(v: unknown): string | null {
+/**
+ * Resolve any model reference to a library entry we actually host.
+ * Exact URL/name first, then keyword matching, so "a red sports car" or
+ * "/models/ferrari.glb" both land on a real asset instead of a box.
+ */
+function resolveModel(v: unknown): CatalogEntry | null {
   if (typeof v !== "string") return null;
   const s = v.trim();
-  const known = MODEL_CATALOG.find(
+  if (!s) return null;
+  const exact = MODEL_CATALOG.find(
     (e) => e.modelUrl === s || e.name.toLowerCase() === s.toLowerCase(),
   );
-  if (known) return known.modelUrl;
-  if (s.startsWith("/models/") && s.endsWith(".glb")) {
-    return MODEL_CATALOG.some((e) => e.modelUrl === s) ? s : null;
-  }
-  return null;
+  if (exact) return exact;
+  // Hallucinated path like /models/ferrari.glb → match on the file stem.
+  const stem = s.replace(/^.*\//, "").replace(/\.(glb|gltf)$/i, "").replace(/[-_]+/g, " ");
+  return matchCatalog(stem) ?? matchCatalog(s);
 }
 
 function physics(v: unknown): Partial<PhysicsProps> {
@@ -153,13 +157,19 @@ function physics(v: unknown): Partial<PhysicsProps> {
 function toObjectPatch(cmd: Record<string, unknown>): Partial<SpawnedObject> {
   const patch: Partial<SpawnedObject> = {};
 
-  const url = modelUrl(cmd["modelUrl"] ?? cmd["url"] ?? cmd["model"]);
+  const rawName = cmd["name"] ?? cmd["label"];
+  const entry =
+    resolveModel(cmd["modelUrl"] ?? cmd["url"] ?? cmd["model"]) ??
+    resolveModel(cmd["asset"] ?? cmd["object"] ?? rawName);
   const geo = geometry(cmd["geometry"] ?? cmd["shape"] ?? cmd["primitive"]);
   const type = typeof cmd["type"] === "string" ? cmd["type"].toLowerCase() : null;
 
-  if (url) {
+  // An explicit primitive request wins only when no real library asset matched.
+  if (entry) {
     patch.kind = "model";
-    patch.modelUrl = url;
+    patch.modelUrl = entry.modelUrl;
+    patch.name = entry.name;
+    patch.scale = [entry.scale, entry.scale, entry.scale];
   } else if (geo || type === "primitive") {
     patch.kind = "primitive";
     patch.modelUrl = null;
