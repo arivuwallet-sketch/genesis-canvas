@@ -1,35 +1,60 @@
-# Make "create a car" spawn a real car
+# Realistic 3D assets instead of coloured boxes
 
 ## The problem
-The AI responded to "create a car" by spawning 6 plain boxes and cylinders
-("Car Body", "Car Cabin", 4 wheels). Technically a car made of blocks, but it
-looks like scattered crates. The app's model library only contains a robot, so
-the AI had no real car to work with.
+Typing "create a car" produced six plain shapes — a red box body, a box cabin,
+four cylinder wheels. The engine only has one real 3D model in its library (a
+robot), so whatever you ask for, the AI has no choice but to fake it with
+primitives. The references you shared (sports car, human character, terrain,
+city) are the quality bar.
+
+## Honest constraint
+The engine cannot invent a photoreal model on demand — nothing in the browser
+generates a new sculpted, textured 3D asset from a sentence in real time. What
+it *can* do is pick from a real library of properly modelled, textured assets.
+So the fix is to give the engine a library worth picking from, and make
+everything it renders look like a real 3D scene rather than flat plastic.
 
 ## What we'll build
 
-1. **Add a real car model**
-   - Download a free-to-use (CC0) low-poly car 3D model from a public asset
-     source (e.g. Kenney / poly.pizza) and place it at `public/models/car.glb`.
-   - Validate the file downloads correctly before wiring it in.
+### 1. A real asset library
+Download free-to-use (CC0) game-ready models with proper textures and place
+them in the project, covering the categories in your references:
+- Vehicles: sports car, sedan, truck
+- Characters: humanoid figure (rigged where available)
+- Environment: trees, rocks, terrain chunk
+- Buildings: house, tower, city block pieces
+- Props: crate, barrel, streetlight
 
-2. **Register it in the model catalog**
-   - Add a "Car" entry to `MODEL_CATALOG` in `src/utils/assetManager.ts` with
-     keywords: car, vehicle, automobile, sedan, race car.
-   - Give it a sensible default scale so it lands proportionate to the world.
+Each model is validated after download; anything that fails to fetch is
+dropped rather than left as a broken reference.
 
-3. **Teach the AI about it**
-   - Update the schema hint in `src/routes/api/ai/chat.ts` so the AI knows
-     `/models/car.glb` exists and should use it for car/vehicle requests
-     instead of assembling primitives.
+### 2. Smart matching from your words
+Expand the engine's catalogue so each model carries keywords ("car, vehicle,
+sports car, race car"). When a prompt names something in the library, the
+engine spawns that real model. Only genuinely unknown things fall back to
+shapes — and the message will say so plainly instead of silently faking it.
 
-4. **Verify in the browser**
-   - Type "create a car" in the chat and screenshot the result: one
-     recognizable car model on the ground, no page errors.
+### 3. Teach the AI what exists
+Feed the current library list into the AI's instructions so it stops
+assembling cars out of boxes and reaches for the real model instead. Group
+requests ("build a street") spawn several library models arranged sensibly.
+
+### 4. Make the render look realistic
+- Replace the flat single-colour ground with a textured, non-uniform surface.
+- Add proper image-based lighting so metal and paint catch reflections the way
+  the reference car does.
+- Keep the existing quality presets working; realism improvements sit on the
+  Medium/Ultra tiers so lower-end machines stay smooth.
+
+### 5. Verify on screen
+Run "create a car", "spawn a character", and "add some trees" in the live
+preview and screenshot each, confirming recognisable models and no errors.
 
 ## Notes
-- No changes to selection, physics, or the pipeline UI — the spawned car gets
-  the same physics body, selection outline, and gizmo support as everything
-  else automatically.
-- If the car model download fails, the fallback is to keep the catalog as-is
-  and say so, rather than shipping a broken reference.
+- Selection, gizmos, physics, carving, and the agent pipeline all keep working
+  unchanged — library models get the same treatment as anything else.
+- The uploaded images are used as a quality reference only; they are not
+  placed into the app.
+- Full photoreal city/terrain at the scale of your Berlin and landscape
+  references is beyond a browser-based engine's budget; the goal here is
+  convincing, well-lit, properly textured game assets.
