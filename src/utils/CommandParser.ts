@@ -157,13 +157,19 @@ function physics(v: unknown): Partial<PhysicsProps> {
 function toObjectPatch(cmd: Record<string, unknown>): Partial<SpawnedObject> {
   const patch: Partial<SpawnedObject> = {};
 
-  const url = modelUrl(cmd["modelUrl"] ?? cmd["url"] ?? cmd["model"]);
+  const rawName = cmd["name"] ?? cmd["label"];
+  const entry =
+    resolveModel(cmd["modelUrl"] ?? cmd["url"] ?? cmd["model"]) ??
+    resolveModel(cmd["asset"] ?? cmd["object"] ?? rawName);
   const geo = geometry(cmd["geometry"] ?? cmd["shape"] ?? cmd["primitive"]);
   const type = typeof cmd["type"] === "string" ? cmd["type"].toLowerCase() : null;
 
-  if (url) {
+  // An explicit primitive request wins only when no real library asset matched.
+  if (entry) {
     patch.kind = "model";
-    patch.modelUrl = url;
+    patch.modelUrl = entry.modelUrl;
+    patch.name = entry.name;
+    patch.scale = [entry.scale, entry.scale, entry.scale];
   } else if (geo || type === "primitive") {
     patch.kind = "primitive";
     patch.modelUrl = null;
