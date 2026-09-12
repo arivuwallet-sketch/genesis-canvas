@@ -12,7 +12,7 @@ import {
   type PrimitiveGeometry,
   type SpawnedObject,
 } from "../store/useEditorStore";
-import { MODEL_CATALOG } from "./assetManager";
+import { MODEL_CATALOG, matchCatalog, type CatalogEntry } from "./assetManager";
 
 const GEOMETRIES: PrimitiveGeometry[] = [
   "box",
