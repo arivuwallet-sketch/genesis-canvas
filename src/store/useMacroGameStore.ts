@@ -6,6 +6,7 @@ import {
   chooseSpawnIntent,
 } from "../highlevel/AIDirector";
 import { generateDynamicQuest } from "../highlevel/QuestOrchestrator";
+import { DEFAULT_MACRO_RULES, evaluateMacroGameRules, applyExtractionReward, type MacroGameRules, type MacroGameSnapshot } from "../highlevel/MacroGameLoop";
 import type {
   DialogueTree,
   DirectorSnapshot,
@@ -27,6 +28,18 @@ interface MacroGameState {
   meta: MetaProgressionState;
   lastSpawnIntent: SpawnIntent | null;
   directorRunning: boolean;
+  rules: MacroGameRules;
+  loop: MacroGameSnapshot;
+  score: number;
+  playerAlive: boolean;
+  extracted: boolean;
+  artifactSecured: boolean;
+  tickGameLoop: (deltaSeconds: number) => MacroGameSnapshot;
+  setScore: (score: number) => void;
+  setPlayerAlive: (alive: boolean) => void;
+  setArtifactSecured: (secured: boolean) => void;
+  setExtracted: (extracted: boolean) => void;
+  completeExtraction: (reward: { currency: number; xp: number; loot: Record<string, number> }) => void;
   updateTelemetry: (patch: Partial<PlayerStressTelemetry>) => void;
   tickDirector: (deltaSeconds: number) => SpawnIntent | null;
   setWorldState: (patch: Partial<WorldState>) => void;
@@ -83,6 +96,44 @@ export const useMacroGameStore = create<MacroGameState>((set, get) => ({
   },
   lastSpawnIntent: null,
   directorRunning: false,
+  rules: DEFAULT_MACRO_RULES,
+  loop: {
+    status: "Active",
+    score: 0,
+    elapsedSeconds: 0,
+    remainingSeconds: DEFAULT_MACRO_RULES.timeLimitMinutes * 60,
+    extracted: false,
+    playerAlive: true,
+    artifactSecured: false,
+  },
+  score: 0,
+  playerAlive: true,
+  extracted: false,
+  artifactSecured: false,
+
+  tickGameLoop: (deltaSeconds) => {
+    const delta = Math.min(1, Math.max(0, deltaSeconds));
+    const current = get().loop;
+    const snapshot = evaluateMacroGameRules(get().rules, {
+      elapsedSeconds: current.elapsedSeconds + delta,
+      score: get().score,
+      playerAlive: get().playerAlive,
+      extracted: get().extracted,
+      artifactSecured: get().artifactSecured,
+    });
+    set({ loop: snapshot });
+    return snapshot;
+  },
+
+  setScore: (score) => set({ score: Math.max(0, score) }),
+  setPlayerAlive: (alive) => set({ playerAlive: alive }),
+  setArtifactSecured: (secured) => set({ artifactSecured: secured }),
+  setExtracted: (extracted) => set({ extracted }),
+  completeExtraction: (reward) =>
+    set((state) => ({
+      meta: applyExtractionReward(state.meta, reward),
+      extracted: true,
+    })),
 
   updateTelemetry: (patch) =>
     set((state) => ({ telemetry: { ...state.telemetry, ...patch } })),
