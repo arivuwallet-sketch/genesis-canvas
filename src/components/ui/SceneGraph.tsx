@@ -187,7 +187,6 @@ function SceneRow({
 export function SceneGraph() {
   const viewMode = useGameConfigStore((s) => s.viewMode);
   const isPlaying = useGameConfigStore((s) => s.isPlaying);
-  if (viewMode !== "scene" || isPlaying) return null;
   const nodes = useSceneStore((s) => s.nodes);
   const selectedNodeId = useSceneStore((s) => s.selectedNodeId);
   const setSelectedNodeId = useSceneStore((s) => s.setSelectedNodeId);
@@ -204,6 +203,8 @@ export function SceneGraph() {
   const spawnedObjects = useEditorStore((s) => s.spawnedObjects);
   const removeObject = useEditorStore((s) => s.removeObject);
   const spawnObject = useEditorStore((s) => s.spawnObject);
+
+  if (viewMode !== "scene" || isPlaying) return null;
 
   // Generated editor entities mirror into the global scene graph.
   useEffect(() => {
