@@ -338,15 +338,23 @@ bool AAICommandReceiver::ExecuteSpawnActor(
 
     if (Parameters.IsValid())
     {
-        FString MaterialError;
-        if (!ApplyMaterialToActor(SpawnedActor, Parameters, MaterialError))
+        FString MaterialPath;
+        FString ColorString;
+        Parameters->TryGetStringField(TEXT("material"), MaterialPath);
+        Parameters->TryGetStringField(TEXT("color"), ColorString);
+
+        if (!MaterialPath.IsEmpty() || !ColorString.IsEmpty())
         {
-            SendResponse(
-                TEXT("ue_command_error"),
-                MaterialError,
-                TEXT("ApplyMaterial"),
-                TargetId);
-            return false;
+            FString MaterialError;
+            if (!ApplyMaterialToActor(SpawnedActor, Parameters, MaterialError))
+            {
+                SendResponse(
+                    TEXT("ue_command_error"),
+                    MaterialError,
+                    TEXT("ApplyMaterial"),
+                    TargetId);
+                return false;
+            }
         }
     }
 
