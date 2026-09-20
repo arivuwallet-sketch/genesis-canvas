@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { GENRE_MATRIX, type MultiplayerMode } from "../data/genres";
 import { useEditorStore } from "./useEditorStore";
+import { useSceneStore } from "./useSceneStore";
 
 export type AgentTab =
   | "master"
@@ -332,6 +333,13 @@ export const useGameConfigStore = create<GameConfigState>((set, get) => ({
           if (stage.id === "assets") {
             profile.spawn();
             get().addCharacter(profile.character);
+            useSceneStore.getState().upsertObjectNodes(
+              useEditorStore.getState().spawnedObjects.map((object) => ({
+                id: object.id,
+                name: object.name,
+                position: object.position,
+              })),
+            );
             set({ pipelineRunning: false, characterPanelOpen: true });
             useEditorStore
               .getState()
@@ -346,7 +354,12 @@ export const useGameConfigStore = create<GameConfigState>((set, get) => ({
     });
 
     if (/\b(main )?menu\b/i.test(prompt)) {
-      schedule(() => get().addMenu(`${primaryGenre} Main Menu`), STAGE_TEMPLATE.length * 2200);
+      schedule(() => {
+        get().addMenu(`${primaryGenre} Main Menu`);
+        useEditorStore
+          .getState()
+          .pushLog(`${primaryGenre} Main Menu generated — drag it from the chat feed onto the viewport.`, "system");
+      }, STAGE_TEMPLATE.length * 2200);
     }
   },
 
