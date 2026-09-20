@@ -1,4 +1,4 @@
-import { Edges, Html, useAnimations, useGLTF, useProgress } from "@react-three/drei";
+import { Decal, Edges, Html, useAnimations, useGLTF, useProgress } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
 import { RigidBody, type RapierRigidBody } from "@react-three/rapier";
 import {
@@ -15,6 +15,7 @@ import { extendGLTFLoader, optimizeScene } from "../utils/assetManager";
 import { registerAnimationActions, unregisterAnimationActions } from "../lib/animationRegistry";
 import { carveGeometry, makePrimitiveGeometry } from "../utils/csg";
 import { useEditorStore, type SpawnedObject } from "../store/useEditorStore";
+import { useVfxStore, type Decal as VfxDecal } from "../store/useVfxStore";
 
 /* ------------------------------------------------------------------ */
 /* Error boundary -> stylized fallback volume                          */
@@ -107,6 +108,82 @@ function PrimitiveMesh({
       />
       {selected && <Edges scale={1.02} color="#b6f36a" />}
     </mesh>
+  );
+}
+
+
+function createDecalTexture(kind: VfxDecal["type"]) {
+  if (typeof document === "undefined") return null;
+  const canvas = document.createElement("canvas");
+  canvas.width = 128;
+  canvas.height = 128;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+
+  ctx.clearRect(0, 0, 128, 128);
+  const center = 64;
+  const gradient = ctx.createRadialGradient(center, center, 5, center, center, 58);
+  if (kind === "bullet_hole") {
+    gradient.addColorStop(0, "rgba(12,12,12,0.95)");
+    gradient.addColorStop(0.3, "rgba(28,28,24,0.82)");
+    gradient.addColorStop(0.62, "rgba(50,40,26,0.42)");
+    gradient.addColorStop(1, "rgba(0,0,0,0)");
+  } else {
+    gradient.addColorStop(0, "rgba(24,18,12,0.78)");
+    gradient.addColorStop(0.35, "rgba(65,44,24,0.55)");
+    gradient.addColorStop(0.7, "rgba(95,62,28,0.2)");
+    gradient.addColorStop(1, "rgba(0,0,0,0)");
+  }
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 128, 128);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+function PrimitiveDecals({ objectId }: { objectId: string }) {
+  const decals = useVfxStore((state) => state.decals.filter((item) => item.targetId === objectId));
+  const textures = useMemo(() => {
+    const map = new Map<VfxDecal["type"], THREE.Texture>();
+    for (const decal of decals) {
+      if (!map.has(decal.type)) {
+        const texture = createDecalTexture(decal.type);
+        if (texture) map.set(decal.type, texture);
+      }
+    }
+    return map;
+  }, [decals]);
+
+  useEffect(
+    () => () => {
+      for (const texture of textures.values()) texture.dispose();
+    },
+    [textures],
+  );
+
+  return (
+    <>
+      {decals.map((decal) => (
+        <Decal
+          key={decal.id}
+          position={decal.position}
+          rotation={decal.rotation}
+          scale={decal.scale}
+          map={textures.get(decal.type)}
+          depthTest
+          polygonOffset
+          polygonOffsetFactor={-4}
+        >
+          <meshBasicMaterial
+            transparent
+            opacity={decal.type === "bullet_hole" ? 0.86 : 0.62}
+            depthWrite={false}
+            toneMapped={false}
+          />
+        </Decal>
+      ))}
+    </>
   );
 }
 
