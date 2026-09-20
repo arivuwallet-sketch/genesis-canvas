@@ -89,7 +89,7 @@ export function calculateDirectorSnapshot(
     phase,
     phaseProgress,
     intensity,
-    actionCooldownSeconds: Math.max(0, this.triggerCooldownSeconds),
+    actionCooldownSeconds: Math.max(0, config.minPhaseSeconds - phaseAgeSeconds),
   };
 }
 
