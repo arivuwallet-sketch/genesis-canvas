@@ -47,6 +47,8 @@ export interface SpawnedObject {
   position: [number, number, number];
   rotation: [number, number, number];
   scale: [number, number, number];
+  visible: boolean;
+  locked: boolean;
   physics: PhysicsProps;
   /** CSG subtractions applied to this entity's geometry. */
   carves: Carve[];
@@ -141,6 +143,8 @@ export function createSpawnedObject(patch: Partial<SpawnedObject>): SpawnedObjec
     position: patch.position ?? [0, 5, 0],
     rotation: patch.rotation ?? [0, 0, 0],
     scale: patch.scale ?? [1, 1, 1],
+    visible: patch.visible ?? true,
+    locked: patch.locked ?? false,
     physics: { ...DEFAULT_PHYSICS, ...(patch.physics ?? {}) },
     carves: patch.carves ?? [],
   };
