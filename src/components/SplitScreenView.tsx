@@ -1,5 +1,5 @@
 import { useFrame, useThree } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
+import { useRef } from "react";
 import * as THREE from "three";
 import { useGameConfigStore } from "../store/useGameConfigStore";
 import { playerPosition } from "../state/playerTransform";
