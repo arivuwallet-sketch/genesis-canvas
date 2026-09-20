@@ -14,6 +14,8 @@ public class GenesisMacro : ModuleRules
                 "Engine",
                 "NetCore",
                 "GameplayTags",
+                "Json",
+                "JsonUtilities",
             });
     }
 }
