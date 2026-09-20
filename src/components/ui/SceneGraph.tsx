@@ -204,8 +204,6 @@ export function SceneGraph() {
   const removeObject = useEditorStore((s) => s.removeObject);
   const spawnObject = useEditorStore((s) => s.spawnObject);
 
-  if (viewMode !== "scene" || isPlaying) return null;
-
   // Generated editor entities mirror into the global scene graph.
   useEffect(() => {
     useSceneStore.getState().upsertObjectNodes(
@@ -350,6 +348,8 @@ export function SceneGraph() {
       return expandedIds.includes(node.id) || Boolean(search.trim()) ? [row, ...renderTree(node.id, depth + 1)] : [row];
     });
   };
+
+  if (viewMode !== "scene" || isPlaying) return null;
 
   return (
     <aside className="pointer-events-auto absolute left-4 top-20 bottom-28 z-20 flex w-64 flex-col overflow-hidden rounded-2xl border border-primary/10 bg-card/65 shadow-2xl backdrop-blur-xl">
