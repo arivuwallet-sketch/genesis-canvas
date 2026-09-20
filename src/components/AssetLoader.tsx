@@ -1,4 +1,4 @@
-import { Edges, Html, useAnimations, useGLTF, useProgress } from "@react-three/drei";
+import { Decal, Edges, Html, useAnimations, useGLTF, useProgress } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
 import { RigidBody, type RapierRigidBody } from "@react-three/rapier";
 import {
@@ -7,12 +7,9 @@ import {
   useEffect,
   useMemo,
   useRef,
-  useState,
   type ReactNode,
-  type RefObject,
 } from "react";
 import * as THREE from "three";
-import { DecalGeometry } from "three/examples/jsm/geometries/DecalGeometry.js";
 import { clone as skeletonClone } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { extendGLTFLoader, optimizeScene } from "../utils/assetManager";
 import { registerAnimationActions, unregisterAnimationActions } from "../lib/animationRegistry";
@@ -95,7 +92,6 @@ function PrimitiveMesh({
   object: SpawnedObject;
   selected: boolean;
 }) {
-  const meshRef = useRef<THREE.Mesh>(null);
   const geometry = useMemo(() => {
     const base = makePrimitiveGeometry(object.geometry);
     return object.carves.length ? carveGeometry(base, object.carves) : base;
@@ -104,13 +100,7 @@ function PrimitiveMesh({
   useEffect(() => () => geometry.dispose(), [geometry]);
 
   return (
-    <mesh
-      ref={meshRef}
-      castShadow
-      receiveShadow
-      scale={object.scale}
-      geometry={geometry}
-    >
+    <mesh castShadow receiveShadow scale={object.scale} geometry={geometry}>
       <meshStandardMaterial
         color={object.color}
         metalness={object.metalness}
@@ -118,7 +108,7 @@ function PrimitiveMesh({
         emissive={object.emissive > 0 ? object.color : "#000000"}
         emissiveIntensity={object.emissive}
       />
-      <PrimitiveDecals objectId={object.id} targetMesh={meshRef} />
+      <PrimitiveDecals objectId={object.id} />
       {selected && <Edges scale={1.02} color="#b6f36a" />}
     </mesh>
   );
@@ -155,72 +145,7 @@ function createDecalTexture(kind: VfxDecal["type"]) {
   return texture;
 }
 
-function ProjectedDecal({
-  decal,
-  texture,
-  targetMesh,
-}: {
-  decal: VfxDecal;
-  texture: THREE.Texture | undefined;
-  targetMesh: RefObject<THREE.Mesh | null>;
-}) {
-  const [geometry, setGeometry] = useState<THREE.BufferGeometry | null>(null);
-
-  useEffect(() => {
-    const target = targetMesh.current;
-    if (!target) {
-      setGeometry(null);
-      return;
-    }
-
-    const nextGeometry = new DecalGeometry(
-      target,
-      new THREE.Vector3(...decal.position),
-      new THREE.Euler(...decal.rotation),
-      new THREE.Vector3(decal.scale, decal.scale, decal.scale),
-    );
-
-    setGeometry(nextGeometry);
-
-    return () => {
-      nextGeometry.dispose();
-    };
-  }, [
-    targetMesh,
-    decal.position[0],
-    decal.position[1],
-    decal.position[2],
-    decal.rotation[0],
-    decal.rotation[1],
-    decal.rotation[2],
-    decal.scale,
-  ]);
-
-  if (!geometry) return null;
-
-  return (
-    <mesh geometry={geometry} renderOrder={10}>
-      <meshBasicMaterial
-        map={texture}
-        transparent
-        opacity={decal.type === "bullet_hole" ? 0.86 : 0.62}
-        depthWrite={false}
-        depthTest
-        polygonOffset
-        polygonOffsetFactor={-4}
-        toneMapped={false}
-      />
-    </mesh>
-  );
-}
-
-function PrimitiveDecals({
-  objectId,
-  targetMesh,
-}: {
-  objectId: string;
-  targetMesh: RefObject<THREE.Mesh | null>;
-}) {
+function PrimitiveDecals({ objectId }: { objectId: string }) {
   const decals = useVfxStore((state) => state.decals.filter((item) => item.targetId === objectId));
   const textures = useMemo(() => {
     const map = new Map<VfxDecal["type"], THREE.Texture>();
@@ -243,12 +168,23 @@ function PrimitiveDecals({
   return (
     <>
       {decals.map((decal) => (
-        <ProjectedDecal
+        <Decal
           key={decal.id}
-          decal={decal}
-          texture={textures.get(decal.type)}
-          targetMesh={targetMesh}
-        />
+          position={decal.position}
+          rotation={decal.rotation}
+          scale={decal.scale}
+          map={textures.get(decal.type)}
+          depthTest
+          polygonOffset
+          polygonOffsetFactor={-4}
+        >
+          <meshBasicMaterial
+            transparent
+            opacity={decal.type === "bullet_hole" ? 0.86 : 0.62}
+            depthWrite={false}
+            toneMapped={false}
+          />
+        </Decal>
       ))}
     </>
   );
