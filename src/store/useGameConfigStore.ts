@@ -2,6 +2,8 @@ import { create } from "zustand";
 import { GENRE_MATRIX, type MultiplayerMode } from "../data/genres";
 import { useEditorStore } from "./useEditorStore";
 import { useSceneStore } from "./useSceneStore";
+import { useLogicStore } from "./useLogicStore";
+import type { LogicEdge, LogicNode } from "./useLogicStore";
 
 export type AgentTab =
   | "master"
@@ -55,6 +57,18 @@ interface GameConfigState {
   setSubGenre: (sub: string) => void;
   setMultiplayerMode: (mode: MultiplayerMode) => void;
   setBlueprintOpen: (open: boolean) => void;
+
+  /* world / play mode */
+  isPlaying: boolean;
+  timeOfDay: number;
+  terrain: {
+    roughness: number;
+    mountainHeight: number;
+    biomeColor: string;
+  };
+  setPlaying: (playing: boolean) => void;
+  setTimeOfDay: (time: number) => void;
+  setTerrain: (patch: Partial<GameConfigState["terrain"]>) => void;
 
   /* agents */
   activeTab: AgentTab;
@@ -281,6 +295,31 @@ export const useGameConfigStore = create<GameConfigState>((set, get) => ({
   subGenre: GENRE_MATRIX[0]?.subGenres[0] ?? "Hack and Slash",
   multiplayerMode: "Singleplayer",
   blueprintOpen: false,
+
+  isPlaying: false,
+  timeOfDay: 14,
+  terrain: {
+    roughness: 0.85,
+    mountainHeight: 3.2,
+    biomeColor: "#66745a",
+  },
+  setPlaying: (isPlaying) => set({ isPlaying }),
+  setTimeOfDay: (time) => set({ timeOfDay: Math.max(0, Math.min(24, time)) }),
+  setTerrain: (patch) =>
+    set((state) => ({
+      terrain: {
+        ...state.terrain,
+        ...patch,
+        roughness:
+          patch.roughness === undefined
+            ? state.terrain.roughness
+            : Math.max(0.1, Math.min(2, patch.roughness)),
+        mountainHeight:
+          patch.mountainHeight === undefined
+            ? state.terrain.mountainHeight
+            : Math.max(0, Math.min(15, patch.mountainHeight)),
+      },
+    })),
   setPrimaryGenre: (genre) => {
     const group = GENRE_MATRIX.find((g) => g.genre === genre);
     set({ primaryGenre: genre, subGenre: group?.subGenres[0] ?? "" });
@@ -330,6 +369,48 @@ export const useGameConfigStore = create<GameConfigState>((set, get) => ({
       schedule(
         () => {
           setStage(stage.id, "done", outputs[stage.id] ?? []);
+          if (stage.id === "mechanics") {
+            const nodes: LogicNode[] = [
+              {
+                id: "event-start",
+                type: "event",
+                position: { x: 80, y: 120 },
+                data: { kind: "event", label: "On Start", detail: `Initialize ${subGenre}` },
+              },
+              {
+                id: "condition-mode",
+                type: "condition",
+                position: { x: 410, y: 120 },
+                data: { kind: "condition", label: "Check Game State", detail: multiplayerMode },
+              },
+              {
+                id: "action-spawn",
+                type: "action",
+                position: { x: 760, y: 120 },
+                data: {
+                  kind: "action",
+                  label: genre === "Racing" ? "Spawn Vehicle" : genre === "Platformer" ? "Enable Jump" : "Spawn Player",
+                  detail: outputs.mechanics[0] ?? "Initialize core loop",
+                },
+              },
+              {
+                id: "action-loop",
+                type: "action",
+                position: { x: 1090, y: 120 },
+                data: {
+                  kind: "action",
+                  label: "Start Gameplay Loop",
+                  detail: outputs.mechanics[1] ?? "Begin simulation",
+                },
+              },
+            ];
+            const edges: LogicEdge[] = [
+              { id: "logic-start-mode", source: "event-start", target: "condition-mode", animated: true },
+              { id: "logic-mode-action", source: "condition-mode", target: "action-spawn", animated: true },
+              { id: "logic-action-loop", source: "action-spawn", target: "action-loop", animated: true },
+            ];
+            useLogicStore.getState().setGraph(nodes, edges);
+          }
           if (stage.id === "assets") {
             profile.spawn();
             get().addCharacter(profile.character);
