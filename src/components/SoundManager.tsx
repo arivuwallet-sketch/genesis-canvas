@@ -1,5 +1,5 @@
 import { useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { useAudioStore, type AudioSource, type AudioZone } from "../store/useAudioStore";
 
@@ -140,33 +140,17 @@ export function SoundManager() {
   const enabled = useAudioStore((state) => state.enabled);
   const sources = useAudioStore((state) => state.sources);
   const zones = useAudioStore((state) => state.zones);
-  const [listener, setListener] = useRef<THREE.AudioListener | null>(null).current as never;
-  void listener;
-  return <SoundManagerInner enabled={enabled} sources={sources} zones={zones} />;
-}
-
-function SoundManagerInner({
-  enabled,
-  sources,
-  zones,
-}: {
-  enabled: boolean;
-  sources: AudioSource[];
-  zones: AudioZone[];
-}) {
-  const listenerRef = useRef<THREE.AudioListener | null>(null);
-  const setReady = (value: THREE.AudioListener | null) => {
-    listenerRef.current = value;
-  };
+  const [listener, setListener] = useState<THREE.AudioListener | null>(null);
 
   return (
     <>
-      <AudioListenerBridge onReady={setReady} />
-      {enabled && listenerRef.current
+      <AudioListenerBridge onReady={setListener} />
+      {enabled && listener
         ? sources.map((source) => (
-            <SpatialSource key={source.id} source={source} listener={listenerRef.current!} zones={zones} />
+            <SpatialSource key={source.id} source={source} listener={listener} zones={zones} />
           ))
         : null}
     </>
   );
 }
+
