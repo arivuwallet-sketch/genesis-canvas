@@ -58,9 +58,11 @@ export function GameplayActor({
 function VehicleGameplay({
   object,
   bodyRef,
+  visualRoot,
 }: {
   object: SpawnedObject;
-  bodyRef: React.RefObject<RapierRigidBody | null>;
+  bodyRef: RefObject<RapierRigidBody | null>;
+  visualRoot: RefObject<THREE.Group | null>;
 }) {
   const [, getKeys] = useKeyboardControls();
   const camera = useThree((state) => state.camera);
