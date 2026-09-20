@@ -21,7 +21,7 @@ import {
   type AgentActivityLog,
   type AgentActivityStatus,
   useAgentActivityStore,
-} from "../store/useAgentActivityStore";
+} from "../../store/useAgentActivityStore";
 
 const AGENT_META: Record<
   string,
