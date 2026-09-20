@@ -2,6 +2,18 @@ import { create } from "zustand";
 
 export type SceneNodeType = "mesh" | "light" | "camera" | "group";
 
+export type NetworkEntityType = "player" | "boss" | "npc" | "object";
+
+export interface NetworkEntity {
+  id: string;
+  name: string;
+  type: NetworkEntityType;
+  position: [number, number, number];
+  rotationY: number;
+  color: string;
+  updatedAt: number;
+}
+
 export interface SceneNode {
   id: string;
   name: string;
@@ -76,6 +88,7 @@ interface SceneState {
   selectedNodeId: string | null;
   expandedIds: string[];
   search: string;
+  networkEntities: NetworkEntity[];
   setSelectedNodeId: (id: string | null) => void;
   setSearch: (value: string) => void;
   toggleExpanded: (id: string) => void;
@@ -90,6 +103,9 @@ interface SceneState {
       position: [number, number, number];
     }>,
   ) => void;
+  upsertNetworkEntity: (entity: NetworkEntity) => void;
+  removeNetworkEntity: (id: string) => void;
+  clearNetworkEntities: () => void;
   reset: () => void;
 }
 
@@ -98,6 +114,7 @@ export const useSceneStore = create<SceneState>((set, get) => ({
   selectedNodeId: null,
   expandedIds: [SCENE_ROOT_ID],
   search: "",
+  networkEntities: [],
 
   setSelectedNodeId: (id) => set({ selectedNodeId: id }),
   setSearch: (search) => set({ search }),
@@ -182,5 +199,24 @@ export const useSceneStore = create<SceneState>((set, get) => ({
       });
       return { nodes: [...nonObjectNodes, ...objectNodes] };
     }),
-  reset: () => set({ nodes: DEFAULT_NODES, selectedNodeId: null, expandedIds: [SCENE_ROOT_ID], search: "" }),
+  upsertNetworkEntity: (entity) =>
+    set((state) => {
+      const index = state.networkEntities.findIndex((item) => item.id === entity.id);
+      if (index < 0) return { networkEntities: [...state.networkEntities, entity] };
+      const next = state.networkEntities.slice();
+      next[index] = entity;
+      return { networkEntities: next };
+    }),
+  removeNetworkEntity: (id) =>
+    set((state) => ({
+      networkEntities: state.networkEntities.filter((item) => item.id !== id),
+    })),
+  clearNetworkEntities: () => set({ networkEntities: [] }),
+  reset: () => set({
+    nodes: DEFAULT_NODES,
+    selectedNodeId: null,
+    expandedIds: [SCENE_ROOT_ID],
+    search: "",
+    networkEntities: [],
+  }),
 }));
