@@ -21,6 +21,7 @@ import {
 import { ParticleManager } from "./ParticleManager";
 import { SoundManager } from "./SoundManager";
 import { TheatreStage } from "./cinematics/TheatreStage";
+import { MacroDirectorRuntime } from "./MacroDirectorRuntime";
 
 export function Viewport() {
   const showPerf = useEditorStore((s) => s.showPerf);
@@ -130,6 +131,7 @@ export function Viewport() {
         </>
       ) : null}
 
+      <MacroDirectorRuntime />
       <DiagnosticsProbe />
 
       {/* The pmndrs post stack is WebGL-only; WebGPU renders unprocessed. */}
