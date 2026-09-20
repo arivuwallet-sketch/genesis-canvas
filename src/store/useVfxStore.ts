@@ -24,6 +24,7 @@ interface VfxState {
   emitters: ParticleEmitter[];
   decals: Decal[];
   spawnVfx: (type: ParticlePreset, position: [number, number, number]) => string;
+  removeEmitter: (id: string) => void;
   addDecal: (decal: Omit<Decal, "id" | "createdAt">) => string;
   removeDecal: (id: string) => void;
   clearVfx: () => void;
@@ -41,6 +42,7 @@ export const useVfxStore = create<VfxState>((set) => ({
     }));
     return id;
   },
+  removeEmitter: (id) => set((state) => ({ emitters: state.emitters.filter((item) => item.id !== id) })),
   addDecal: (decal) => {
     const id = uid();
     set((state) => ({
