@@ -46,6 +46,10 @@ private:
     bool ExecuteTransformActor(const TSharedPtr<class FJsonObject>& CommandObject);
     bool ExecuteSetTimeOfDay(const TSharedPtr<class FJsonObject>& CommandObject);
     bool ExecuteApplyMaterial(const TSharedPtr<class FJsonObject>& CommandObject);
+    bool ApplyMaterialToActor(
+        AActor* Target,
+        const TSharedPtr<class FJsonObject>& Parameters,
+        FString& OutError);
 
     static bool ReadVector3(
         const TSharedPtr<class FJsonObject>& Parameters,
