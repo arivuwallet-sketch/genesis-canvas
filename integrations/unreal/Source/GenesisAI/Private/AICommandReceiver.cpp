@@ -290,8 +290,9 @@ bool AAICommandReceiver::ExecuteSpawnActor(
     }
 
     const TSharedPtr<FJsonObject>* ParametersPtr = nullptr;
+    CommandObject->TryGetObjectField(TEXT("parameters"), ParametersPtr);
     const TSharedPtr<FJsonObject> Parameters =
-        CommandObject->TryGetObjectField(TEXT("parameters"));
+        ParametersPtr != nullptr ? *ParametersPtr : nullptr;
 
     FVector Location = FVector::ZeroVector;
     FRotator Rotation = FRotator::ZeroRotator;
@@ -337,8 +338,16 @@ bool AAICommandReceiver::ExecuteSpawnActor(
 
     if (Parameters.IsValid())
     {
-        ExecuteApplyMaterial(
-            MakeShared<FJsonObject>(*CommandObject));
+        FString MaterialError;
+        if (!ApplyMaterialToActor(SpawnedActor, Parameters, MaterialError))
+        {
+            SendResponse(
+                TEXT("ue_command_error"),
+                MaterialError,
+                TEXT("ApplyMaterial"),
+                TargetId);
+            return false;
+        }
     }
 
     SendResponse(
@@ -398,8 +407,10 @@ bool AAICommandReceiver::ExecuteTransformActor(
         return false;
     }
 
+    const TSharedPtr<FJsonObject>* ParametersPtr = nullptr;
+    CommandObject->TryGetObjectField(TEXT("parameters"), ParametersPtr);
     const TSharedPtr<FJsonObject> Parameters =
-        CommandObject->TryGetObjectField(TEXT("parameters"));
+        ParametersPtr != nullptr ? *ParametersPtr : nullptr;
 
     if (Parameters.IsValid())
     {
@@ -500,19 +511,47 @@ bool AAICommandReceiver::ExecuteApplyMaterial(
     AActor* Target = ResolveTarget(TargetId);
     if (!Target)
     {
+        SendResponse(
+            TEXT("ue_command_error"),
+            FString::Printf(TEXT("Target '%s' was not found."), *TargetId),
+            TEXT("ApplyMaterial"),
+            TargetId);
         return false;
     }
 
+    const TSharedPtr<FJsonObject>* ParametersPtr = nullptr;
+    CommandObject->TryGetObjectField(TEXT("parameters"), ParametersPtr);
     const TSharedPtr<FJsonObject> Parameters =
-        CommandObject->TryGetObjectField(TEXT("parameters"));
+        ParametersPtr != nullptr ? *ParametersPtr : nullptr;
 
-    if (!Parameters.IsValid())
+    FString MaterialError;
+    if (!ApplyMaterialToActor(Target, Parameters, MaterialError))
     {
         SendResponse(
             TEXT("ue_command_error"),
-            TEXT("ApplyMaterial requires parameters."),
+            MaterialError,
             TEXT("ApplyMaterial"),
             TargetId);
+        return false;
+    }
+
+    SendResponse(
+        TEXT("ue_command_completed"),
+        FString::Printf(TEXT("Applied material to '%s'."), *TargetId),
+        TEXT("ApplyMaterial"),
+        TargetId);
+
+    return true;
+}
+
+bool AAICommandReceiver::ApplyMaterialToActor(
+    AActor* Target,
+    const TSharedPtr<FJsonObject>& Parameters,
+    FString& OutError)
+{
+    if (!Target || !Parameters.IsValid())
+    {
+        OutError = TEXT("Material parameters are missing.");
         return false;
     }
 
@@ -521,20 +560,17 @@ bool AAICommandReceiver::ExecuteApplyMaterial(
 
     if (MeshComponents.IsEmpty())
     {
-        SendResponse(
-            TEXT("ue_command_error"),
-            FString::Printf(
-                TEXT("Actor '%s' has no mesh component."),
-                *TargetId),
-            TEXT("ApplyMaterial"),
-            TargetId);
+        OutError = FString::Printf(
+            TEXT("Actor '%s' has no mesh component."),
+            *Target->GetName());
         return false;
     }
 
+    UMeshComponent* Mesh = MeshComponents[0];
+    UMaterialInterface* ParentMaterial = Mesh->GetMaterial(0);
+
     FString MaterialPath;
     Parameters->TryGetStringField(TEXT("material"), MaterialPath);
-
-    UMaterialInterface* ParentMaterial = MeshComponents[0]->GetMaterial(0);
 
     if (!MaterialPath.IsEmpty())
     {
@@ -543,10 +579,26 @@ bool AAICommandReceiver::ExecuteApplyMaterial(
             nullptr,
             *MaterialPath);
 
-        if (LoadedMaterial)
+        UMaterialInterface* LoadedInterface =
+            Cast<UMaterialInterface>(LoadedMaterial);
+
+        if (!LoadedInterface)
         {
-            ParentMaterial = Cast<UMaterialInterface>(LoadedMaterial);
+            OutError = FString::Printf(
+                TEXT("Material '%s' could not be loaded."),
+                *MaterialPath);
+            return false;
         }
+
+        ParentMaterial = LoadedInterface;
+    }
+
+    if (!ParentMaterial)
+    {
+        OutError = FString::Printf(
+            TEXT("Actor '%s' has no material on mesh slot 0."),
+            *Target->GetName());
+        return false;
     }
 
     UMaterialInstanceDynamic* DynamicMaterial =
@@ -554,11 +606,7 @@ bool AAICommandReceiver::ExecuteApplyMaterial(
 
     if (!DynamicMaterial)
     {
-        SendResponse(
-            TEXT("ue_command_error"),
-            TEXT("Failed to create a dynamic material instance."),
-            TEXT("ApplyMaterial"),
-            TargetId);
+        OutError = TEXT("Failed to create a dynamic material instance.");
         return false;
     }
 
@@ -567,23 +615,15 @@ bool AAICommandReceiver::ExecuteApplyMaterial(
 
     if (!ColorString.IsEmpty())
     {
-        FLinearColor Color;
-        if (FLinearColor::FromSRGBColor(FColor::FromHex(ColorString), Color))
-        {
-            DynamicMaterial->SetVectorParameterValue(
-                TEXT("BaseColor"),
-                Color);
-        }
+        FColor ParsedColor = FColor::FromHex(ColorString);
+        const FLinearColor LinearColor = FLinearColor::FromSRGBColor(ParsedColor);
+
+        DynamicMaterial->SetVectorParameterValue(
+            TEXT("BaseColor"),
+            LinearColor);
     }
 
-    MeshComponents[0]->SetMaterial(0, DynamicMaterial);
-
-    SendResponse(
-        TEXT("ue_command_completed"),
-        FString::Printf(TEXT("Applied material to '%s'."), *TargetId),
-        TEXT("ApplyMaterial"),
-        TargetId);
-
+    Mesh->SetMaterial(0, DynamicMaterial);
     return true;
 }
 
