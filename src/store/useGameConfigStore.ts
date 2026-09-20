@@ -55,9 +55,13 @@ interface GameConfigState {
   subGenre: string;
   multiplayerMode: MultiplayerMode;
   blueprintOpen: boolean;
+  localPlayerCount: 2 | 3 | 4;
+  multiplayerMenuOpen: boolean;
   setPrimaryGenre: (genre: string) => void;
   setSubGenre: (sub: string) => void;
   setMultiplayerMode: (mode: MultiplayerMode) => void;
+  setLocalPlayerCount: (count: 2 | 3 | 4) => void;
+  setMultiplayerMenuOpen: (open: boolean) => void;
   setBlueprintOpen: (open: boolean) => void;
 
   /* world / play mode */
@@ -297,8 +301,10 @@ const clearTimers = () => {
 export const useGameConfigStore = create<GameConfigState>((set, get) => ({
   primaryGenre: GENRE_MATRIX[0]?.genre ?? "Action",
   subGenre: GENRE_MATRIX[0]?.subGenres[0] ?? "Hack and Slash",
-  multiplayerMode: "Singleplayer",
+  multiplayerMode: "singleplayer",
   blueprintOpen: false,
+  localPlayerCount: 2,
+  multiplayerMenuOpen: false,
 
   isPlaying: false,
   timeOfDay: 14,
@@ -342,7 +348,12 @@ export const useGameConfigStore = create<GameConfigState>((set, get) => ({
     set({ primaryGenre: genre, subGenre: group?.subGenres[0] ?? "" });
   },
   setSubGenre: (sub) => set({ subGenre: sub }),
-  setMultiplayerMode: (mode) => set({ multiplayerMode: mode }),
+  setMultiplayerMode: (mode) => {
+    if (mode !== "split-screen") set({ multiplayerMode: mode, localPlayerCount: 2 });
+    else set({ multiplayerMode: mode });
+  },
+  setLocalPlayerCount: (count) => set({ localPlayerCount: count }),
+  setMultiplayerMenuOpen: (open) => set({ multiplayerMenuOpen: open }),
   setBlueprintOpen: (open) => set({ blueprintOpen: open }),
 
   activeTab: "master",
