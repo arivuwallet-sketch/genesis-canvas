@@ -51,12 +51,16 @@ export function MacroDirectorRuntime() {
       timeSinceCombatSeconds: lastCombat.current,
     });
 
-    if (macro.world.timeRemainingSeconds > 0) {
-      macro.tickGameLoop(delta);
-    }
-
     worldClockAccumulator.current += delta;
     loopAccumulator.current += delta;
+
+    if (loopAccumulator.current >= 0.25) {
+      const loopDelta = loopAccumulator.current;
+      loopAccumulator.current = 0;
+      if (macro.world.timeRemainingSeconds > 0) {
+        macro.tickGameLoop(loopDelta);
+      }
+    }
 
     if (worldClockAccumulator.current >= 0.25) {
       worldClockAccumulator.current = 0;
@@ -68,10 +72,7 @@ export function MacroDirectorRuntime() {
       });
     }
 
-    if (loopAccumulator.current >= 0.5) {
-      loopAccumulator.current = 0;
-      macro.tickGameLoop(0);
-    }
+
   });
 
   return null;
