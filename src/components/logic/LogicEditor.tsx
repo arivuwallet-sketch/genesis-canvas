@@ -31,6 +31,10 @@ export function LogicEditor() {
   useEffect(() => setNodes(storedNodes), [setNodes, storedNodes]);
   useEffect(() => setEdges(storedEdges), [setEdges, storedEdges]);
 
+  useEffect(() => {
+    setGraph(nodes, edges);
+  }, [edges, nodes, setGraph]);
+
   const onConnect = useCallback(
     (params: Connection) => {
       setEdges((current) => {
@@ -67,20 +71,8 @@ export function LogicEditor() {
         nodes={nodes}
         edges={edges}
         nodeTypes={LOGIC_NODE_TYPES}
-        onNodesChange={(changes) => {
-          onNodesChange(changes);
-          setNodes((current) => {
-            setGraph(current, edges);
-            return current;
-          });
-        }}
-        onEdgesChange={(changes) => {
-          onEdgesChange(changes);
-          setEdges((current) => {
-            setGraph(nodes, current);
-            return current;
-          });
-        }}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onNodeClick={(_, node) => setSelectedNodeId(node.id)}
         fitView
