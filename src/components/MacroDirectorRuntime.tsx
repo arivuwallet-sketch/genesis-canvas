@@ -8,7 +8,9 @@ import { useGameConfigStore } from "../store/useGameConfigStore";
 export function MacroDirectorRuntime() {
   const elapsed = useRef(0);
   const recentDamage = useRef(0);
-  const lastCombat = useRef(30);\n  const worldClockAccumulator = useRef(0);\n  const loopAccumulator = useRef(0);
+  const lastCombat = useRef(30);
+  const worldClockAccumulator = useRef(0);
+  const loopAccumulator = useRef(0);
 
   useEffect(() => {
     const unhealth = gameplayEventBus.on("onPlayerHealthChange", (event) => {
