@@ -127,7 +127,27 @@ namespace
         Ar << Snapshot.bArtifactSecured;
 
         SerializeMeta(Ar, Snapshot.Meta);
-        Ar << Snapshot.Quests;
+
+        int32 QuestCount = Snapshot.Quests.Num();
+        Ar << QuestCount;
+        if (Ar.IsSaving())
+        {
+            for (FGenesisQuestGraph& Quest : Snapshot.Quests)
+            {
+                SerializeQuest(Ar, Quest);
+            }
+        }
+        else
+        {
+            Snapshot.Quests.Reset();
+            for (int32 Index = 0; Index < QuestCount; ++Index)
+            {
+                FGenesisQuestGraph Quest;
+                SerializeQuest(Ar, Quest);
+                Snapshot.Quests.Add(MoveTemp(Quest));
+            }
+        }
+
         Ar << Snapshot.CompletedObjectives;
         Ar << Snapshot.MidLevelSnapshot;
     }
@@ -240,9 +260,6 @@ bool FGenesisMacroSaveSerializer::Deserialize(
     SerializeSnapshot(Reader, Candidate);
 
     if (Reader.IsError())
-        return false;
-
-    if (Candidate.Rules.TargetScore <= 0)
         return false;
 
     OutSnapshot = MoveTemp(Candidate);
