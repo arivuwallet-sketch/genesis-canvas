@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Play, Square, SunMedium } from "lucide-react";
+import { Play, Square, SunMedium, Users } from "lucide-react";
 import { useEditorStore, type GraphicsQuality } from "../store/useEditorStore";
 import { useNetworkSync } from "../hooks/useNetworkSync";
 import { useAiCommand } from "../hooks/useAiCommand";
@@ -10,6 +10,7 @@ import { AgentTabs, AgentPanel } from "./agents/AgentTabs";
 import { PipelineView } from "./agents/PipelineView";
 import { ChatMenuCard, PlacedMenus } from "./agents/GameMenuWidget";
 import { CharacterBehaviorPanel } from "./CharacterBehaviorPanel";
+import { MultiplayerMenu } from "./MultiplayerMenu";
 
 const QUALITY: { value: GraphicsQuality; label: string }[] = [
   { value: "low", label: "Low" },
@@ -150,6 +151,8 @@ export function OverlayUI() {
   const setPlaying = useGameConfigStore((s) => s.setPlaying);
   const timeOfDay = useGameConfigStore((s) => s.timeOfDay);
   const setTimeOfDay = useGameConfigStore((s) => s.setTimeOfDay);
+  const multiplayerMenuOpen = useGameConfigStore((s) => s.multiplayerMenuOpen);
+  const setMultiplayerMenuOpen = useGameConfigStore((s) => s.setMultiplayerMenuOpen);
 
   const enterPlayMode = () => {
     const canvas = document.querySelector("canvas");
@@ -285,6 +288,16 @@ export function OverlayUI() {
               </button>
               <QualitySelect />
               <button
+                type="button"
+                onClick={() => setMultiplayerMenuOpen(!multiplayerMenuOpen)}
+                className={`${pill} ${multiplayerMenuOpen ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
+              >
+                <span className="flex items-center gap-1.5">
+                  <Users className="h-3.5 w-3.5" />
+                  Multiplayer
+                </span>
+              </button>
+              <button
                 onClick={enterPlayMode}
                 className="flex items-center gap-2 rounded-full border border-primary/55 bg-primary/20 px-7 py-3 text-[13px] font-bold uppercase tracking-[0.22em] text-primary shadow-[0_0_24px_color-mix(in_oklab,var(--primary)_24%,transparent)] transition hover:bg-primary/30"
               >
@@ -311,6 +324,7 @@ export function OverlayUI() {
 
       {!isPlaying && (
         <>
+          <MultiplayerMenu />
           {!playerEnabled && selectedId && (
             <div className="pointer-events-auto absolute left-1/2 top-20 flex -translate-x-1/2 gap-2">
               {(["translate", "rotate", "scale"] as const).map((mode, i) => (
