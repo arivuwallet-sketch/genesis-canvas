@@ -6,7 +6,6 @@ import * as THREE from "three";
 import { useEditorStore } from "../../store/useEditorStore";
 import { useGameConfigStore } from "../../store/useGameConfigStore";
 import { playerPosition, playerState } from "../../state/playerTransform";
-import { sendTransform } from "../../network/socketClient";
 import { sendPlayerInput } from "../../hooks/useColyseusClient";
 
 /* ------------------------------------------------------------------ */
@@ -152,8 +151,6 @@ function ControllerRig() {
     playerPosition.set(pos.x, pos.y, pos.z);
     playerState.yaw = yaw;
     playerState.active = true;
-    sendTransform({ position: [pos.x, pos.y, pos.z], yaw });
-
     inputSendAccumulator.current += delta;
     if (
       (multiplayerMode === "online" || multiplayerMode === "online-coop") &&
