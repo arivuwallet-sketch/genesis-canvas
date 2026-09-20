@@ -1,6 +1,6 @@
 import { useCallback, useRef } from "react";
 import { useEditorStore } from "../store/useEditorStore";
-import { applyAiResponse, applyCommand } from "../utils/CommandParser";
+import { applyAiResponse, applyCommand, extractAssistantReply } from "../utils/CommandParser";
 
 /** Instant local shortcuts so obvious commands never wait on the network. */
 function localShortcut(prompt: string): string | null {
@@ -42,10 +42,20 @@ export function useAiCommand() {
     store.setAiThinking(true);
     store.setStreamText("");
 
-    const context = store.spawnedObjects
-      .slice(-8)
-      .map((o) => `${o.id}:${o.name}@[${o.position.map((n) => n.toFixed(1)).join(",")}]`)
-      .join("; ");
+    const conversation = store.log
+      .slice(-12)
+      .map((entry) => `${entry.kind}: ${entry.text.slice(0, 500)}`)
+      .join("\n");
+
+    const world = store.spawnedObjects
+      .slice(-12)
+      .map(
+        (o) =>
+          `${o.id}:${o.name} [${o.kind}] @[${o.position.map((n) => n.toFixed(1)).join(",")}] scale=[${o.scale.map((n) => n.toFixed(1)).join(",")}]`,
+      )
+      .join("\n");
+
+    const context = `Recent conversation:\n${conversation || "(none)"}\n\nCurrent world:\n${world || "(empty)"}`;
 
     try {
       const res = await fetch("/api/ai/chat", {
@@ -103,9 +113,17 @@ export function useAiCommand() {
       if (errored) throw new Error(errored);
 
       const result = applyAiResponse(full);
+      const assistantReply =
+        extractAssistantReply(full) ??
+        (result.ok ? result.message : "I couldn't complete that request.");
       const s = useEditorStore.getState();
-      s.pushLog(full.trim().slice(0, 300) || "(empty response)", "ai");
-      s.pushLog(result.message, result.ok ? "system" : "error");
+      s.pushLog(assistantReply, "ai");
+      if (result.ok && result.message !== assistantReply) {
+        const actionDetails = result.message.replace(assistantReply, "").trim();
+        if (actionDetails) s.pushLog(actionDetails, "system");
+      } else if (!result.ok) {
+        s.pushLog(result.message, "error");
+      }
     } catch (error) {
       if ((error as Error).name === "AbortError") return;
       useEditorStore.getState().pushLog((error as Error).message, "error");
