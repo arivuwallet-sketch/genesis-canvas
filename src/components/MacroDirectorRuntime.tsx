@@ -3,6 +3,7 @@ import { useFrame } from "@react-three/fiber";
 import { gameplayEventBus } from "../gameplay/GameplayEventBus";
 import { useGameplayStore } from "../store/useGameplayStore";
 import { useMacroGameStore } from "../store/useMacroGameStore";
+import { useGameConfigStore } from "../store/useGameConfigStore";
 
 export function MacroDirectorRuntime() {
   const elapsed = useRef(0);
@@ -32,6 +33,8 @@ export function MacroDirectorRuntime() {
   }, []);
 
   useFrame((_, deltaSeconds) => {
+    if (!useGameConfigStore.getState().isPlaying) return;
+
     const delta = Math.min(0.25, Math.max(0, deltaSeconds));
     elapsed.current += delta;
     lastCombat.current += delta;
