@@ -61,10 +61,10 @@ export function inferGameplaySpec(
   if (archetype === "vehicle") {
     return {
       archetype,
-      controllable: /\b(drive|drivable|driveable|vehicle|car)\b/.test(normalized),
+      controllable: true,
       capabilities: ["drive", "interact", "door_open"],
       materialProfile: realistic ? "realistic" : "realistic",
-      autoControl: /\b(drivable|driveable|drive)\b/.test(normalized),
+      autoControl: true,
     };
   }
 
@@ -81,10 +81,11 @@ export function inferGameplaySpec(
   }
 
   if (archetype === "building") {
+    const doorRequested = /\b(door|open|enter|entrance)\b/.test(normalized);
     return {
       archetype,
       controllable: false,
-      capabilities: ["interact", "door_open"],
+      capabilities: doorRequested ? ["interact", "door_open"] : ["interact"],
       materialProfile: realistic ? "realistic" : "realistic",
       autoControl: false,
     };
