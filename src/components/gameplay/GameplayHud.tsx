@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useGameplayStore } from "../../store/useGameplayStore";
 
 export interface GameplayHudProps {
@@ -8,7 +8,12 @@ export interface GameplayHudProps {
 
 export function GameplayHud({ playerId = "player_1", showMiniMap = true }: GameplayHudProps) {
   const player = useGameplayStore((state) => state.players[playerId]);
+  const ensurePlayer = useGameplayStore((state) => state.ensurePlayer);
   const dialogue = useGameplayStore((state) => state.activeDialogue);
+
+  useEffect(() => {
+    ensurePlayer(playerId);
+  }, [ensurePlayer, playerId]);
 
   const healthRatio = useMemo(
     () => (player ? Math.max(0, Math.min(1, player.health / Math.max(1, player.maxHealth))) : 0),
