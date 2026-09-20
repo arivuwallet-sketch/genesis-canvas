@@ -3,6 +3,7 @@
 #include "GenesisAIDirectorSubsystem.h"
 #include "GenesisMacroGameState.h"
 #include "Engine/GameInstance.h"
+#include "GenesisMetaProgressionSubsystem.h"
 
 AGenesisMacroGameMode::AGenesisMacroGameMode()
 {
@@ -127,12 +128,14 @@ void AGenesisMacroGameMode::CompleteExtraction(
 {
     SetExtracted(true);
     // Meta currency/XP is persisted by the GameInstance subsystem in production.
-    UE_LOG(
-        LogTemp,
-        Log,
-        TEXT("[GenesisMacro] Extraction reward currency=%d xp=%d"),
-        CurrencyReward,
-        XPReward);
+    if (UGameInstance* GameInstance = GetGameInstance())
+    {
+        if (UGenesisMetaProgressionSubsystem* Meta =
+                GameInstance->GetSubsystem<UGenesisMetaProgressionSubsystem>())
+        {
+            Meta->CommitExtraction(CurrencyReward, XPReward);
+        }
+    }
 }
 
 void AGenesisMacroGameMode::EvaluateRules()
