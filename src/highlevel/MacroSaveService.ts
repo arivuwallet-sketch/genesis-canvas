@@ -1,0 +1,89 @@
+import { getLatestSceneStateJson } from "../workers/SceneStateSerializer";
+import { useGameplayStore } from "../store/useGameplayStore";
+import { useMacroGameStore } from "../store/useMacroGameStore";
+import {
+  deserializeMacroSave,
+  serializeMacroSave,
+} from "./MacroSaveSerializer";
+import type { MacroSaveEnvelope } from "./MacroTypes";
+
+export async function createMacroSave(playerId: string): Promise<Uint8Array> {
+  const macro = useMacroGameStore.getState();
+  const gameplay = useGameplayStore.getState();
+
+  return serializeMacroSave({
+    playerId,
+    world: macro.world,
+    director: macro.director,
+    quests: macro.quests,
+    completedQuestObjectives: macro.completedQuestObjectives,
+    meta: macro.meta,
+    gameplayState: {
+      gameplay,
+      ecsSceneState: getLatestSceneStateJson(),
+    },
+  });
+}
+
+export async function restoreMacroSave(bytes: Uint8Array): Promise<MacroSaveEnvelope> {
+  const save = await deserializeMacroSave(bytes);
+  const macro = useMacroGameStore.getState();
+
+  macro.setWorldState(save.world);
+  macro.setMeta(save.meta);
+  macro.setScore(save.director.stressScore >= 0 ? save.gameplayState && typeof save.gameplayState === "object" ? macro.score : macro.score : macro.score);
+
+  if (save.completedQuestObjectives.length > 0) {
+    save.completedQuestObjectives.forEach((objectiveId) =>
+      macro.completeQuestObjective(objectiveId),
+    );
+  }
+
+  return save;
+}
+
+export async function saveMacroToCloud(
+  playerId: string,
+): Promise<{ ok: boolean; message: string }> {
+  try {
+    const bytes = await createMacroSave(playerId);
+    const base64 = bytesToBase64(bytes);
+
+    const response = await fetch("/api/save/macro", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        playerId,
+        payloadBase64: base64,
+      }),
+    });
+
+    if (!response.ok) {
+      const body = await response.text().catch(() => "");
+      return {
+        ok: false,
+        message: body.slice(0, 240) || "Macro cloud save failed.",
+      };
+    }
+
+    return { ok: true, message: "Macro state saved to cloud." };
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Macro cloud save failed.",
+    };
+  }
+}
+
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = "";
+  const chunk = 0x8000;
+
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode(
+      ...bytes.subarray(i, Math.min(bytes.length, i + chunk)),
+    );
+  }
+
+  return btoa(binary);
+}
