@@ -25,6 +25,13 @@ export interface DirectorConfig {
   minPhaseSeconds: number;
 }
 
+export interface DirectorRuntimeState {
+  elapsedSeconds: number;
+  phaseAgeSeconds: number;
+  phase: DirectorPhase;
+  cooldownSeconds: number;
+}
+
 export interface DirectorSnapshot {
   stressScore: number;
   phase: DirectorPhase;
@@ -124,6 +131,7 @@ export interface MacroSaveEnvelope {
   playerId: string;
   world: WorldState;
   director: DirectorSnapshot;
+  directorRuntime: DirectorRuntimeState;
   quests: QuestGraph[];
   completedQuestObjectives: string[];
   meta: MetaProgressionState;
