@@ -27,6 +27,8 @@ function playerPositionFor(index: number) {
 }
 
 function GamepadActors({ count }: { count: number }) {
+  const actorRefs = useRef<Array<THREE.Group | null>>([]);
+
   useEffect(() => {
     if (count < 2) return;
     const stop = startGamepadPolling(count);
@@ -53,6 +55,12 @@ function GamepadActors({ count }: { count: number }) {
         state.yaw = Math.atan2(input.moveX, input.moveY);
       }
     }
+
+    for (let player = 2; player <= count; player += 1) {
+      const state = localPlayers[player - 1];
+      actorRefs.current[player - 2]?.position.copy(state.position);
+      actorRefs.current[player - 2]?.rotation.set(0, state.yaw, 0);
+    }
   });
 
   return (
@@ -61,7 +69,12 @@ function GamepadActors({ count }: { count: number }) {
         const player = offset + 2;
         const state = localPlayers[player - 1];
         return (
-          <group key={"split-player-" + player} position={state.position}>
+          <group
+            key={"split-player-" + player}
+            ref={(group) => {
+              actorRefs.current[player - 2] = group;
+            }}
+            position={state.position}>
             <mesh castShadow>
               <capsuleGeometry args={[0.3, 0.75, 6, 16]} />
               <meshStandardMaterial
@@ -101,8 +114,6 @@ export function SplitScreenSceneActors() {
   const multiplayerMode = useGameConfigStore((s) => s.multiplayerMode);
   const playerCount = useGameConfigStore((s) => s.localPlayerCount);
   const isPlaying = useGameConfigStore((s) => s.isPlaying);
-  const client = useColyseusClient();
-
   if (!isPlaying || multiplayerMode !== "split-screen") return null;
   return (
     <GamepadActors count={playerCount} />
@@ -116,16 +127,10 @@ export function SplitScreenRenderer() {
   const { gl, scene } = useThree();
   const cameraRefs = useRef<Array<THREE.PerspectiveCamera | null>>([]);
 
-  const cameras = useMemo(
-    () => Array.from({ length: 4 }, () => null as THREE.PerspectiveCamera | null),
-    [],
-  );
-
-  useFrame((state) => {
+  useFrame(() => {
     if (!isPlaying || multiplayerMode !== "split-screen") return;
 
     const count = Math.max(2, Math.min(4, playerCount));
-    const camerasToUse = cameras;
     const drawWidth = gl.domElement.width;
     const drawHeight = gl.domElement.height;
     const columns = count <= 2 ? count : 2;
@@ -145,10 +150,7 @@ export function SplitScreenRenderer() {
 
       const col = index % columns;
       const row = Math.floor(index / columns);
-      const viewportWidth = index === count - 1 && count % columns !== 0
-        ? cellWidth
-        : cellWidth;
-
+      const viewportWidth = cellWidth;
       const playerPos = playerPositionFor(index);
       camera.position.set(
         playerPos.x,
