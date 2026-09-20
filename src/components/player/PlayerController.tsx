@@ -7,6 +7,7 @@ import { useEditorStore } from "../../store/useEditorStore";
 import { useGameConfigStore } from "../../store/useGameConfigStore";
 import { playerPosition, playerState } from "../../state/playerTransform";
 import { sendPlayerInput } from "../../hooks/useColyseusClient";
+import { useGameplayControlStore } from "../../store/useGameplayControlStore";
 
 /* ------------------------------------------------------------------ */
 /* Keyboard map — WASD + space to jump + shift to run                  */
@@ -19,6 +20,9 @@ export const keyboardMap = [
   { name: "rightward", keys: ["ArrowRight", "KeyD"] },
   { name: "jump", keys: ["Space"] },
   { name: "run", keys: ["ShiftLeft", "ShiftRight"] },
+  { name: "interact", keys: ["KeyE"] },
+  { name: "crouch", keys: ["KeyC"] },
+  { name: "attack", keys: ["KeyF"] },
 ];
 
 export function PlayerKeyboardProvider({ children }: { children: ReactNode }) {
@@ -99,6 +103,7 @@ function ControllerRig() {
   const camera = useThree((s) => s.camera);
   const gl = useThree((s) => s.gl);
   const isPlaying = useGameConfigStore((s) => s.isPlaying);
+  const activeActorId = useGameplayControlStore((s) => s.activeActorId);
   const multiplayerMode = useGameConfigStore((s) => s.multiplayerMode);
   const setPlaying = useGameConfigStore((s) => s.setPlaying);
   const cameraMode = useEditorStore((s) => s.cameraMode);
@@ -126,7 +131,7 @@ function ControllerRig() {
   useFrame((_, rawDelta) => {
     const delta = Math.min(rawDelta, 0.05);
     const body = characterRef.current;
-    if (!body) return;
+    if (!body || activeActorId) return;
 
     const keys = getKeys() as Record<string, boolean>;
     body.setMovement({
