@@ -307,7 +307,14 @@ export const useGameConfigStore = create<GameConfigState>((set, get) => ({
     mountainHeight: 3.2,
     biomeColor: "#66745a",
   },
-  setPlaying: (isPlaying) => set({ isPlaying }),
+  setPlaying: (isPlaying) => {
+    if (isPlaying) {
+      useLogicStore.getState().setLogicOpen(false);
+      set({ isPlaying: true, viewMode: "scene" });
+    } else {
+      set({ isPlaying: false, viewMode: "scene" });
+    }
+  },
   setTimeOfDay: (time) => set({ timeOfDay: Math.max(0, Math.min(24, time)) }),
   setTerrain: (patch) =>
     set((state) => ({
