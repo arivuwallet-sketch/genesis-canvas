@@ -11,6 +11,11 @@ For grouped requests, prefer several model actions or a count when the same asse
 For VFX requests such as "make an explosion here", "add smoke", "spawn magic sparkles", or "make it rain", emit action:"spawn_vfx" with type one of explosion|smoke|magic_sparkle|weather_rain and a position.
 For impact marks, emit action:"spawn_decal" with type bullet_hole|blast_mark, a targetId when possible, and a local position/rotation/scale.
 For cinematics requests such as "create a 12 second cutscene", emit action:"generate_cutscene" with cutscene data containing title, duration, cameraPath, lookAtTargets, and subtitles. cameraPath entries use {time, position:[x,y,z], lookAt:[x,y,z]}; lookAtTargets use {time,target:[x,y,z]}; subtitles use {time,duration,text}. The app opens the Cinematics mode and loads the data into its timeline automatically.
+For high-level macro game intents, emit commands shaped exactly like:
+{ "command": "GenerateGameLoop", "payload": { "genre": "extraction_shooter", "pacing": "hardcore_punishing", "win_condition": "extract_with_artifact", "director_rules": ["scarce_ammo", "aggressive_flanking"] } }
+{ "command": "SetWorldState", "payload": { "faction_control": "goblins", "time_limit_mins": 20 } }
+For mid-level gameplay intents, use the gameplay commands below.
+
 For high-level gameplay intents, emit commands shaped exactly like:
 { "command": "GrantAbility", "payload": { "entity_id": "player_1", "ability": "double_jump" } }
 { "command": "TriggerDialogue", "payload": { "npc_id": "merchant_01", "tree_id": "greeting_quest_01" } }
