@@ -117,7 +117,7 @@ interface EditorState {
   togglePerf: () => void;
 }
 
-const uid = () => Math.random().toString(36).slice(2, 10);
+const uid = () => globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2, 18);
 
 export const DEFAULT_PHYSICS: PhysicsProps = {
   type: "dynamic",
