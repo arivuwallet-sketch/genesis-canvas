@@ -24,6 +24,18 @@ export function MultiplayerMenu() {
   const [roomCode, setRoomCode] = useState("");
   const client = useColyseusClient();
 
+  useEffect(() => {
+    setNetwork({
+      status:
+        client.status === "connected" || client.status === "simulated"
+          ? client.status
+          : client.status === "connecting"
+            ? "connecting"
+            : "offline",
+      peers: Math.max(0, client.players.length - 1),
+    });
+  }, [client.status, client.players.length, setNetwork]);
+
   if (!open || isPlaying) return null;
 
   const chooseMode = (next: MultiplayerMode) => {
@@ -44,18 +56,6 @@ export function MultiplayerMenu() {
     if (!room) return;
     client.connectToRoom(room);
   };
-
-  useEffect(() => {
-    setNetwork({
-      status:
-        client.status === "connected" || client.status === "simulated"
-          ? client.status
-          : client.status === "connecting"
-            ? "connecting"
-            : "offline",
-      peers: Math.max(0, client.players.length - 1),
-    });
-  }, [client.status, client.players.length, setNetwork]);
 
   return (
     <aside className="pointer-events-auto absolute right-5 top-20 z-30 w-[min(24rem,calc(100vw-2.5rem))] rounded-2xl border border-primary/15 bg-card/90 p-4 shadow-2xl backdrop-blur-xl">
