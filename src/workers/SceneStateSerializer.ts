@@ -4,8 +4,8 @@ import { useSceneStore } from "../store/useSceneStore";
 export interface SceneStateDelta {
   v: 1;
   t: number;
-  added: string[][];
-  updated: string[][];
+  added: CompactEntity[];
+  updated: CompactEntity[];
   removed: string[];
 }
 
@@ -34,12 +34,38 @@ const compactEntity = (entity: EcsEntityRecord): CompactEntity => [
 
 const sceneFallbackEntities = (): EcsEntityRecord[] => {
   const scene = useSceneStore.getState();
-  return scene.nodes.filter((node) => node.visible && node.type === "mesh").map((node) => ({
+  const meshEntities = scene.nodes
+    .filter((node) => node.visible && node.type === "mesh")
+    .map((node) => ({
+
     id: node.id, name: node.name, category: "prop",
     transform: { position: node.position, rotation: [0, 0, 0], scale: [1, 1, 1] },
     bounds: { size: [2, 2, 2] },
     physics: { bodyType: "fixed", massKg: 0, friction: 1, restitution: 0, gravityScale: 0 },
   }));
+
+  const networkEntities = scene.networkEntities.map((entity) => ({
+    id: entity.id,
+    name: entity.name,
+    category: entity.type === "player" ? "character" as const : entity.type === "boss" || entity.type === "npc" ? "character" as const : "prop" as const,
+    transform: {
+      position: entity.position,
+      rotation: [0, entity.rotationY, 0] as [number, number, number],
+      scale: [1, 1, 1] as [number, number, number],
+    },
+    bounds: { size: [2, 2, 2] as [number, number, number] },
+    physics: {
+      bodyType: "dynamic" as const,
+      massKg: 1,
+      friction: 1,
+      restitution: 0.2,
+      gravityScale: 1,
+    },
+  }));
+
+  const byId = new Map<string, EcsEntityRecord>();
+  for (const entity of [...meshEntities, ...networkEntities]) byId.set(entity.id, entity);
+  return [...byId.values()];
 };
 
 export class SceneStateSerializer {
@@ -70,7 +96,10 @@ export class SceneStateSerializer {
 
   private tick() {
     const ecs = useEcsStore.getState().entities;
-    const entities = ecs.length > 0 ? ecs : sceneFallbackEntities();
+    const fallback = sceneFallbackEntities();
+    const byId = new Map<string, EcsEntityRecord>();
+    for (const entity of [...fallback, ...ecs]) byId.set(entity.id, entity);
+    const entities = [...byId.values()];
     const current = new Map<string, string>();
     const added: string[][] = [];
     const updated: string[][] = [];
@@ -79,8 +108,8 @@ export class SceneStateSerializer {
       const compact = compactEntity(entity);
       const encoded = JSON.stringify(compact);
       current.set(entity.id, encoded);
-      if (!this.previous.has(entity.id)) added.push(compact as string[]);
-      else if (this.previous.get(entity.id) !== encoded) updated.push(compact as string[]);
+      if (!this.previous.has(entity.id)) added.push(compact);
+      else if (this.previous.get(entity.id) !== encoded) updated.push(compact);
     }
 
     const removed: string[] = [];
