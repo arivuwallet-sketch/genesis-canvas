@@ -115,7 +115,7 @@ export function useAiCommand() {
       .slice(-12)
       .map(
         (o) =>
-          `${o.id}:${o.name} [${o.kind}] @[${o.position.map((n) => n.toFixed(1)).join(",")}] scale=[${o.scale.map((n) => n.toFixed(1)).join(",")}]`,
+          `${o.id}:${o.name} [${o.kind}] gameplay=${o.gameplay.archetype}/${o.gameplay.capabilities.join("|")} @[${o.position.map((n) => n.toFixed(1)).join(",")}] scale=[${o.scale.map((n) => n.toFixed(1)).join(",")}]`,
       )
       .join("\n");
 
