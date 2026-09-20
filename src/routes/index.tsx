@@ -3,6 +3,7 @@ import { Viewport } from "../components/Viewport";
 import { OverlayUI } from "../components/OverlayUI";
 import { SceneGraph } from "../components/ui/SceneGraph";
 import { LogicEditor } from "../components/logic/LogicEditor";
+import { SceneMemoryBootstrap } from "../components/SceneMemoryBootstrap";
 
 export const Route = createFileRoute("/")({
   ssr: false,
@@ -30,6 +31,7 @@ export const Route = createFileRoute("/")({
 function Index() {
   return (
     <main className="fixed inset-0 bg-background">
+      <SceneMemoryBootstrap />
       <Viewport />
       <SceneGraph />
       <OverlayUI />
