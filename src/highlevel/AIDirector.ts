@@ -152,6 +152,27 @@ export class AIDirectorEngine {
     this.triggerCooldownSeconds = Math.max(0, cooldownSeconds);
   }
 
+  getRuntimeState() {
+    return {
+      elapsedSeconds: this.elapsedSeconds,
+      phaseAgeSeconds: this.phaseAgeSeconds,
+      phase: this.phase,
+      cooldownSeconds: this.triggerCooldownSeconds,
+    };
+  }
+
+  restoreRuntimeState(state: {
+    elapsedSeconds: number;
+    phaseAgeSeconds: number;
+    phase: DirectorPhase;
+    cooldownSeconds: number;
+  }) {
+    this.elapsedSeconds = Math.max(0, state.elapsedSeconds);
+    this.phaseAgeSeconds = Math.max(0, state.phaseAgeSeconds);
+    this.phase = state.phase;
+    this.triggerCooldownSeconds = Math.max(0, state.cooldownSeconds);
+  }
+
   update(deltaSeconds: number, telemetry: PlayerStressTelemetry): DirectorSnapshot {
     const delta = Math.max(0, Math.min(deltaSeconds, 0.25));
     this.elapsedSeconds += delta;
@@ -180,6 +201,7 @@ export class AIDirectorEngine {
       this.phaseAgeSeconds += delta;
     }
 
+    this.snapshot.actionCooldownSeconds = this.triggerCooldownSeconds;
     return this.snapshot;
   }
 }
