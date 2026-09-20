@@ -19,6 +19,7 @@ import { requestNetworkedBoss } from "../hooks/useColyseusClient";
 import { spawnEcsBatch, updateEcsEntity, removeEcsEntity, clearEcs, ecsEntityFromRenderObject } from "../ecs/EcsCommandBus";
 import { executeGameplayCommands } from "../gameplay/GameplayCommandExecutor";
 import { executeMacroCommand } from "../highlevel/MacroCommandExecutor";
+import { normalizeGameplaySpec } from "../gameplay/GameplayActorTypes";
 
 const GEOMETRIES: PrimitiveGeometry[] = [
   "box",
@@ -169,6 +170,17 @@ function toObjectPatch(cmd: Record<string, unknown>): Partial<SpawnedObject> {
     resolveModel(cmd["asset"] ?? cmd["object"] ?? rawName);
   const geo = geometry(cmd["geometry"] ?? cmd["shape"] ?? cmd["primitive"]);
   const type = typeof cmd["type"] === "string" ? cmd["type"].toLowerCase() : null;
+  const semanticText = [
+    typeof rawName === "string" ? rawName : "",
+    typeof cmd["model"] === "string" ? cmd["model"] : "",
+    typeof cmd["asset"] === "string" ? cmd["asset"] : "",
+    typeof cmd["gameplayIntent"] === "string" ? cmd["gameplayIntent"] : "",
+  ].join(" ");
+  const gameplay = normalizeGameplaySpec(
+    entry?.category,
+    semanticText,
+    cmd["gameplay"],
+  );
 
   // An explicit primitive request wins only when no real library asset matched.
   if (entry) {
@@ -208,8 +220,27 @@ function toObjectPatch(cmd: Record<string, unknown>): Partial<SpawnedObject> {
     patch.emissive = num(cmd["emissive"] ?? cmd["glow"], 0, 0, 4);
 
   const phys = physics(cmd["physics"] ?? cmd);
-  if (Object.keys(phys).length) patch.physics = phys as PhysicsProps;
+  if (gameplay.archetype === "vehicle") {
+    patch.physics = {
+      type: phys.type ?? "dynamic",
+      mass: phys.mass ?? 850,
+      restitution: phys.restitution ?? 0.08,
+      friction: phys.friction ?? 1.15,
+      gravityScale: phys.gravityScale ?? 1,
+    };
+  } else if (gameplay.archetype === "humanoid") {
+    patch.physics = {
+      type: phys.type ?? "dynamic",
+      mass: phys.mass ?? 80,
+      restitution: phys.restitution ?? 0,
+      friction: phys.friction ?? 1,
+      gravityScale: phys.gravityScale ?? 1,
+    };
+  } else if (Object.keys(phys).length) {
+    patch.physics = phys as PhysicsProps;
+  }
 
+  patch.gameplay = gameplay;
   return patch;
 }
 
