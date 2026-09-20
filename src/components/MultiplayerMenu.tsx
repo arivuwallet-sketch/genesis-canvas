@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Gamepad2, Globe2, Laptop2, Link2, Radio, Users, X } from "lucide-react";
 import { useColyseusClient, createRoomCode } from "../hooks/useColyseusClient";
 import { useEditorStore } from "../store/useEditorStore";
 import { useGameConfigStore } from "../store/useGameConfigStore";
 import type { MultiplayerMode } from "../data/genres";
 
-const MODES: Array<{ value: MultiplayerMode; label: string; icon: React.ReactNode }> = [
+const MODES: Array<{ value: MultiplayerMode; label: string; icon: ReactNode }> = [
   { value: "singleplayer", label: "Singleplayer", icon: <Laptop2 className="h-4 w-4" /> },
   { value: "split-screen", label: "Local Split-Screen", icon: <Gamepad2 className="h-4 w-4" /> },
   { value: "online", label: "Online Multiplayer", icon: <Globe2 className="h-4 w-4" /> },
@@ -45,15 +45,17 @@ export function MultiplayerMenu() {
     client.connectToRoom(room);
   };
 
-  setNetwork({
-    status:
-      client.status === "connected" || client.status === "simulated"
-        ? client.status
-        : client.status === "connecting"
-          ? "connecting"
-          : "offline",
-    peers: Math.max(0, client.players.length - 1),
-  });
+  useEffect(() => {
+    setNetwork({
+      status:
+        client.status === "connected" || client.status === "simulated"
+          ? client.status
+          : client.status === "connecting"
+            ? "connecting"
+            : "offline",
+      peers: Math.max(0, client.players.length - 1),
+    });
+  }, [client.status, client.players.length, setNetwork]);
 
   return (
     <aside className="pointer-events-auto absolute right-5 top-20 z-30 w-[min(24rem,calc(100vw-2.5rem))] rounded-2xl border border-primary/15 bg-card/90 p-4 shadow-2xl backdrop-blur-xl">
