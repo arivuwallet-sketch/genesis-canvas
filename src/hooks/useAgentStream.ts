@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { useAgentActivityStore, type AgentActivityStatus } from "../store/useAgentActivityStore";
+import { getLatestSceneStateJson } from "../workers/SceneStateSerializer";
 
 type AgentStreamEvent = {
   taskId?: string;
@@ -24,7 +25,15 @@ export const useAgentStream = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
         },
-        body: JSON.stringify({ prompt: masterPrompt }),
+        body: JSON.stringify({
+          prompt: [
+            "SPATIAL MEMORY (current compact scene state):",
+            getLatestSceneStateJson(),
+            "",
+            "MASTER PROMPT:",
+            masterPrompt,
+          ].join("\n"),
+        }),
 
         onmessage(event) {
           let data: AgentStreamEvent;
