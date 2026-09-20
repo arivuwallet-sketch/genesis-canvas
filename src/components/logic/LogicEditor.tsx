@@ -22,6 +22,7 @@ export function LogicEditor() {
   const setGraph = useLogicStore((state) => state.setGraph);
   const setSelectedNodeId = useLogicStore((state) => state.setSelectedNodeId);
   const setLogicOpen = useLogicStore((state) => state.setLogicOpen);
+  const setViewMode = useGameConfigStore((state) => state.setViewMode);
   const primaryGenre = useGameConfigStore((state) => state.primaryGenre);
   const activeTab = useGameConfigStore((state) => state.activeTab);
 
@@ -61,7 +62,10 @@ export function LogicEditor() {
         <button
           type="button"
           className="pointer-events-auto rounded-full border border-primary/30 bg-primary/10 px-4 py-2 text-[10px] uppercase tracking-[0.18em] text-primary hover:bg-primary/20"
-          onClick={() => setLogicOpen(false)}
+          onClick={() => {
+            setLogicOpen(false);
+            setViewMode("scene");
+          }}
         >
           Return to Scene View
         </button>
