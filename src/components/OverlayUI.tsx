@@ -285,8 +285,8 @@ export function OverlayUI() {
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary [animation-delay:150ms]" />
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary [animation-delay:300ms]" />
               </span>
-              <span className="min-w-0 flex-1 truncate font-mono">
-                {streamText.trim().slice(-160) || "Thinking…"}
+              <span className="min-w-0 flex-1 truncate">
+                {streamText.trim() ? "Planning the scene, checking context, and preparing the next move…" : "Thinking…"}
               </span>
             </div>
           )}
