@@ -8,6 +8,7 @@
  */
 
 import type { Socket } from "socket.io-client";
+import { useSceneStore } from "../store/useSceneStore";
 
 export type Vec3 = [number, number, number];
 
@@ -62,21 +63,44 @@ function upsertRemote(id: string, t: PlayerTransform, name?: string) {
   if (existing) {
     existing.target = t;
     existing.lastSeen = performance.now();
+    useSceneStore.getState().upsertNetworkEntity({
+      id,
+      name: existing.name,
+      type: "player",
+      position: t.position,
+      rotationY: t.yaw,
+      color: existing.color,
+      updatedAt: Date.now(),
+    });
     return;
   }
+  const displayName = name ?? `Player ${remotePlayers.size + 1}`;
+  const color = PALETTE[remotePlayers.size % PALETTE.length]!;
   remotePlayers.set(id, {
     id,
-    name: name ?? `Player ${remotePlayers.size + 1}`,
-    color: PALETTE[remotePlayers.size % PALETTE.length]!,
+    name: displayName,
+    color,
     target: t,
     current: { position: [...t.position] as Vec3, yaw: t.yaw },
     lastSeen: performance.now(),
+  });
+  useSceneStore.getState().upsertNetworkEntity({
+    id,
+    name: displayName,
+    type: "player",
+    position: t.position,
+    rotationY: t.yaw,
+    color,
+    updatedAt: Date.now(),
   });
   notifyRoster();
 }
 
 function dropRemote(id: string) {
-  if (remotePlayers.delete(id)) notifyRoster();
+  if (remotePlayers.delete(id)) {
+    useSceneStore.getState().removeNetworkEntity(id);
+    notifyRoster();
+  }
 }
 
 /* ------------------------------------------------------------------ */
