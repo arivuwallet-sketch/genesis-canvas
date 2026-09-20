@@ -1,10 +1,9 @@
 import { useFrame, useThree } from "@react-three/fiber";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { useGameConfigStore } from "../store/useGameConfigStore";
 import { playerPosition } from "../state/playerTransform";
 import { getGamepadInput, startGamepadPolling, stopGamepadPolling } from "../input/gamepadState";
-import { useEffect } from "react";
 import { useColyseusClient, type PlayerInputData } from "../hooks/useColyseusClient";
 
 const SPLIT_COLORS = ["#b6f36a", "#6ad1f3", "#f3a76a", "#d06af3"];
@@ -126,6 +125,13 @@ export function SplitScreenRenderer() {
   const isPlaying = useGameConfigStore((s) => s.isPlaying);
   const { gl, scene } = useThree();
   const cameraRefs = useRef<Array<THREE.PerspectiveCamera | null>>([]);
+
+  useEffect(() => {
+    const previousAutoClear = gl.autoClear;
+    return () => {
+      gl.autoClear = previousAutoClear;
+    };
+  }, [gl]);
 
   useFrame(() => {
     if (!isPlaying || multiplayerMode !== "split-screen") return;
