@@ -340,14 +340,54 @@ export function applyCommand(input: unknown): CommandResult {
   }
 }
 
-/** Parse raw model text and apply every valid command found in it. */
+/** Extract the human-facing response from the internal assistant envelope. */
+export function extractAssistantReply(raw: string): string | null {
+  const candidates = extractJsonCandidates(raw);
+  for (const candidate of candidates) {
+    if (!isRecord(candidate)) continue;
+    const reply = candidate["reply"];
+    if (typeof reply === "string" && reply.trim()) return reply.trim().slice(0, 2000);
+  }
+  return null;
+}
+
+/** Parse raw model text and apply every valid action found in it. */
 export function applyAiResponse(raw: string): CommandResult {
   const candidates = extractJsonCandidates(raw);
   if (candidates.length === 0)
-    return { ok: false, message: "No structured command in the response." };
+    return { ok: false, message: "No structured assistant response was received." };
 
-  const results = candidates.map(applyCommand).filter((r) => r.ok);
-  if (results.length === 0)
-    return { ok: false, message: "Command payload was not actionable." };
-  return { ok: true, message: results.map((r) => r.message).join(" ") };
+  const messages: string[] = [];
+  let actionable = false;
+  let conversational = false;
+
+  for (const candidate of candidates) {
+    if (!isRecord(candidate)) continue;
+
+    const reply = candidate["reply"];
+    if (typeof reply === "string" && reply.trim()) {
+      messages.push(reply.trim().slice(0, 2000));
+      conversational = true;
+    }
+
+    const batch = candidate["actions"] ?? candidate["commands"] ?? candidate["objects"];
+    if (Array.isArray(batch)) {
+      const result = applyCommand(batch);
+      if (result.ok) {
+        messages.push(result.message);
+        actionable = true;
+      }
+    } else if ("action" in candidate) {
+      const result = applyCommand(candidate);
+      if (result.ok) {
+        messages.push(result.message);
+        actionable = true;
+      }
+    }
+  }
+
+  if (!actionable && !conversational)
+    return { ok: false, message: "Assistant response was not actionable." };
+
+  return { ok: true, message: messages.join(" ") };
 }
