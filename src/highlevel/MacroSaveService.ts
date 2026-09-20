@@ -29,16 +29,7 @@ export async function restoreMacroSave(bytes: Uint8Array): Promise<MacroSaveEnve
   const save = await deserializeMacroSave(bytes);
   const macro = useMacroGameStore.getState();
 
-  macro.setWorldState(save.world);
-  macro.setMeta(save.meta);
-  macro.setScore(save.director.stressScore >= 0 ? save.gameplayState && typeof save.gameplayState === "object" ? macro.score : macro.score : macro.score);
-
-  if (save.completedQuestObjectives.length > 0) {
-    save.completedQuestObjectives.forEach((objectiveId) =>
-      macro.completeQuestObjective(objectiveId),
-    );
-  }
-
+  macro.restoreMacroSnapshot(save);
   return save;
 }
 
