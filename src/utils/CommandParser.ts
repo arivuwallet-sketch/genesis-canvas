@@ -288,6 +288,7 @@ export function applyCommand(input: unknown): CommandResult {
     }
 
     case "spawn_networked_boss":
+    case "spawnnetworkedboss":
     case "spawnNetworkedBoss": {
       const rawName = input["name"] ?? input["bossName"];
       const name =
