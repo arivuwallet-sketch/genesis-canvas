@@ -5,7 +5,7 @@ const SYSTEM_PROMPT = `You are Genesis, the conversational intelligence inside a
 
 const SCHEMA_HINT = `
 Return ONE JSON object with a friendly "reply" string and an "actions" array. No markdown fences. "reply" should be concise, useful, and conversational. "actions" may be empty for a normal conversation or explanation.
-For library objects, set type:"model" and use the exact modelUrl from the catalogue below.
+For library objects, set type:"model" and use the exact modelUrl from the catalogue below. Every generated library actor must also get a semantic "gameplay" object so the runtime can make it functional, not just visual. Vehicles should be drivable with WASD/arrow controls and E for doors; humanoids should support walk/run, jump, crouch (C), and fight (F).
 For primitive-only requests, set type:"primitive" and geometry explicitly.
 For grouped requests, prefer several model actions or a count when the same asset repeats. Keep repeated objects near ground level and spread them across x/z rather than stacking them vertically.
 For VFX requests such as "make an explosion here", "add smoke", "spawn magic sparkles", or "make it rain", emit action:"spawn_vfx" with type one of explosion|smoke|magic_sparkle|weather_rain and a position.
@@ -37,7 +37,13 @@ Shape:
   "color": "#ff0000",
   "metalness": 0..1, "roughness": 0..1, "emissive": 0..4,
   "count": 1..12,
-  "physics": { "type": "dynamic" | "fixed", "mass": 1, "restitution": 0.2, "friction": 1, "gravityScale": 1 },
+  "physics": { "type": "dynamic" | "fixed", "mass": 80, "restitution": 0.2, "friction": 1, "gravityScale": 1 },
+  "gameplay": {
+    "archetype": "vehicle" | "humanoid" | "building" | "prop" | "nature" | "unknown",
+    "controllable": true,
+    "capabilities": ["drive" | "walk" | "run" | "jump" | "crouch" | "fight" | "interact" | "door_open"],
+    "materialProfile": "realistic"
+  },
   "timeOfDay": 14,
   "terrain": { "roughness": 0.85, "mountainHeight": 3.2, "biomeColor": "#66745a" },
   "entityId": "<entity id>",
