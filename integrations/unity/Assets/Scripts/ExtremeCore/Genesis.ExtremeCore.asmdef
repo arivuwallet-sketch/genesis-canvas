@@ -1,0 +1,14 @@
+{
+  "name": "Genesis.ExtremeCore",
+  "rootNamespace": "Genesis.ExtremeCore",
+  "references": [],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
