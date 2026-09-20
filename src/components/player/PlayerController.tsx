@@ -23,6 +23,7 @@ export const keyboardMap = [
   { name: "interact", keys: ["KeyE"] },
   { name: "crouch", keys: ["KeyC"] },
   { name: "attack", keys: ["KeyF"] },
+  { name: "release", keys: ["KeyQ"] },
 ];
 
 export function PlayerKeyboardProvider({ children }: { children: ReactNode }) {
