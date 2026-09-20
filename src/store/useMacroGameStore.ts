@@ -43,6 +43,7 @@ interface MacroGameState {
   setExtracted: (extracted: boolean) => void;
   completeExtraction: (reward: { currency: number; xp: number; loot: Record<string, number> }) => void;
   restoreMacroSnapshot: (snapshot: import("../highlevel/MacroTypes").MacroSaveEnvelope) => void;
+  getDirectorRuntimeState: () => import("../highlevel/MacroTypes").DirectorRuntimeState;
   generateGameLoop: (config: GameLoopConfig) => void;
   updateTelemetry: (patch: Partial<PlayerStressTelemetry>) => void;
   tickDirector: (deltaSeconds: number) => SpawnIntent | null;
