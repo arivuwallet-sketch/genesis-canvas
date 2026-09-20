@@ -165,10 +165,8 @@ export function OverlayUI() {
   const characterPanelOpen = useGameConfigStore((s) => s.characterPanelOpen);
   const setCharacterPanelOpen = useGameConfigStore((s) => s.setCharacterPanelOpen);
 
-  // Socket lifecycle + listeners live entirely in this hook.
   useNetworkSync();
 
-  // Menus dragged out of the chat feed land on the viewport overlay.
   useEffect(() => {
     const onDragOver = (e: DragEvent) => {
       if (e.dataTransfer?.types.includes("text/menu-id")) e.preventDefault();
@@ -186,7 +184,6 @@ export function OverlayUI() {
       window.removeEventListener("drop", onDrop);
     };
   }, [placeMenu]);
-
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -214,7 +211,6 @@ export function OverlayUI() {
 
   return (
     <div className="pointer-events-none fixed inset-0 z-10 select-none">
-      {/* Top bar */}
       <header className="pointer-events-auto absolute inset-x-0 top-0 flex items-center justify-between gap-2 px-5 py-4">
         <div className="glass-panel flex items-center gap-3 rounded-full px-4 py-2">
           <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_10px_var(--primary)]" />
@@ -243,7 +239,7 @@ export function OverlayUI() {
                 </button>
                 <button
                   onClick={() => setViewMode("logic")}
-                  className={`${pill} ${viewMode === "logic" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-primary"}}
+                  className={`${pill} ${viewMode === "logic" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-primary"}`}
                 >
                   Logic View
                 </button>
@@ -251,7 +247,10 @@ export function OverlayUI() {
               <label className="glass-panel flex items-center gap-2 rounded-full px-3 py-2">
                 <SunMedium className="h-3.5 w-3.5 text-primary" />
                 <span className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                  {Math.floor(timeOfDay).toString().padStart(2, "0")}:{Math.round((timeOfDay % 1) * 60).toString().padStart(2, "0")}
+                  {Math.floor(timeOfDay).toString().padStart(2, "0")}:
+                  {Math.round((timeOfDay % 1) * 60)
+                    .toString()
+                    .padStart(2, "0")}
                 </span>
                 <input
                   type="range"
@@ -294,7 +293,7 @@ export function OverlayUI() {
               </button>
               <button
                 onClick={togglePerf}
-                className={`${pill} text-muted-foreground hover:text-primary}
+                className={`${pill} text-muted-foreground hover:text-primary`}
               >
                 Perf {showPerf ? "on" : "off"} · P
               </button>
@@ -312,86 +311,87 @@ export function OverlayUI() {
 
       {!isPlaying && (
         <>
-      {!playerEnabled && selectedId && (
-        <div className="pointer-events-auto absolute left-1/2 top-20 flex -translate-x-1/2 gap-2">
-          {(["translate", "rotate", "scale"] as const).map((mode, i) => (
-            <button
-              key={mode}
-              onClick={() => setTransformMode(mode)}
-              className={`${pill} ${transformMode === mode ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
-            >
-              {mode} · {["T", "R", "S"][i]}
-            </button>
-          ))}
-        </div>
-      )}
-
-      <LoadingBar />
-      <EntityList />
-      <CharacterBehaviorPanel />
-      <PlacedMenus />
-      <hudTunnel.Out />
-
-      {playerEnabled && (
-        <p className="absolute bottom-28 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">
-          Click the world to look · WASD move · Space jump · Esc release
-        </p>
-      )}
-
-      {/* Bottom prompt bar */}
-      <div className="pointer-events-auto absolute inset-x-0 bottom-0 flex justify-center px-4 pb-7">
-        <div className="w-full max-w-2xl">
-          <AgentTabs />
-          <PipelineView />
-          <AgentPanel />
-          {dockedMenus.map((m) => (
-            <ChatMenuCard key={m.id} menu={m} />
-          ))}
-          <Transcript />
-          {aiThinking && (
-            <div className="glass-panel mb-3 flex items-start gap-3 rounded-2xl px-4 py-3 text-xs text-primary/85">
-              <span className="mt-0.5 flex gap-1">
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary [animation-delay:150ms]" />
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary [animation-delay:300ms]" />
-              </span>
-              <span className="min-w-0 flex-1 truncate">
-                {streamText.trim() ? "Planning the scene, checking context, and preparing the next move…" : "Thinking…"}
-              </span>
+          {!playerEnabled && selectedId && (
+            <div className="pointer-events-auto absolute left-1/2 top-20 flex -translate-x-1/2 gap-2">
+              {(["translate", "rotate", "scale"] as const).map((mode, i) => (
+                <button
+                  key={mode}
+                  onClick={() => setTransformMode(mode)}
+                  className={`${pill} ${transformMode === mode ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
+                >
+                  {mode} · {["T", "R", "S"][i]}
+                </button>
+              ))}
             </div>
           )}
-          <GenreSelector />
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              const prompt = chatInput.trim();
-              if (!prompt) return;
-              if (activeTab === "master") runMasterPrompt(prompt);
-              submitPrompt();
-            }}
-            className="glass-panel flex w-full items-center gap-3 rounded-2xl px-4 py-3"
-          >
-            <span className="font-mono text-xs text-primary">✦</span>
-            <input
-              value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              placeholder={
-                activeTab === "master"
-                  ? 'Master prompt — e.g. "build a racing level with a main menu"…'
-                  : 'Talk to Genesis — e.g. "make this street feel alive" or "add a sports car"…'
-              }
-              className="min-w-0 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/70 focus:outline-none"
-            />
-            <button
-              type="submit"
-              disabled={aiThinking || pipelineRunning}
-              className="rounded-lg border border-primary/35 bg-primary/12 px-3 py-1.5 text-[11px] uppercase tracking-[0.16em] text-primary transition-colors hover:bg-primary/22 disabled:opacity-40"
-            >
-              {aiThinking || pipelineRunning ? "…" : "Send"}
-            </button>
-          </form>
-        </div>
-      </div>
+
+          <LoadingBar />
+          <EntityList />
+          <CharacterBehaviorPanel />
+          <PlacedMenus />
+          <hudTunnel.Out />
+
+          {playerEnabled && (
+            <p className="absolute bottom-28 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/70">
+              Click the world to look · WASD move · Space jump · Esc release
+            </p>
+          )}
+
+          <div className="pointer-events-auto absolute inset-x-0 bottom-0 flex justify-center px-4 pb-7">
+            <div className="w-full max-w-2xl">
+              <AgentTabs />
+              <PipelineView />
+              <AgentPanel />
+              {dockedMenus.map((m) => (
+                <ChatMenuCard key={m.id} menu={m} />
+              ))}
+              <Transcript />
+              {aiThinking && (
+                <div className="glass-panel mb-3 flex items-start gap-3 rounded-2xl px-4 py-3 text-xs text-primary/85">
+                  <span className="mt-0.5 flex gap-1">
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary [animation-delay:150ms]" />
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary [animation-delay:300ms]" />
+                  </span>
+                  <span className="min-w-0 flex-1 truncate">
+                    {streamText.trim()
+                      ? "Planning the scene, checking context, and preparing the next move…"
+                      : "Thinking…"}
+                  </span>
+                </div>
+              )}
+              <GenreSelector />
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const prompt = chatInput.trim();
+                  if (!prompt) return;
+                  if (activeTab === "master") runMasterPrompt(prompt);
+                  submitPrompt();
+                }}
+                className="glass-panel flex w-full items-center gap-3 rounded-2xl px-4 py-3"
+              >
+                <span className="font-mono text-xs text-primary">✦</span>
+                <input
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  placeholder={
+                    activeTab === "master"
+                      ? 'Master prompt — e.g. "build a racing level with a main menu"…'
+                      : 'Talk to Genesis — e.g. "make this street feel alive" or "add a sports car"…'
+                  }
+                  className="min-w-0 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/70 focus:outline-none"
+                />
+                <button
+                  type="submit"
+                  disabled={aiThinking || pipelineRunning}
+                  className="rounded-lg border border-primary/35 bg-primary/12 px-3 py-1.5 text-[11px] uppercase tracking-[0.16em] text-primary transition-colors hover:bg-primary/22 disabled:opacity-40"
+                >
+                  {aiThinking || pipelineRunning ? "…" : "Send"}
+                </button>
+              </form>
+            </div>
+          </div>
         </>
       )}
     </div>
