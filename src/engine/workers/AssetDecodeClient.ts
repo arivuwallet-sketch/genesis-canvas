@@ -1,5 +1,13 @@
+export interface DecodedGeometry {
+  name: string;
+  position: Float32Array;
+  normal?: Float32Array;
+  uv?: Float32Array;
+  index?: Uint32Array;
+}
+
 type Pending = {
-  resolve: (value: ArrayBuffer) => void;
+  resolve: (value: DecodedGeometry[]) => void;
   reject: (reason?: unknown) => void;
 };
 
@@ -17,27 +25,28 @@ export class AssetDecodeClient {
       if (!pending) return;
 
       this.pending.delete(id);
+
       if (event.data.type === "error") {
-        pending.reject(new Error(String(event.data.message ?? "Asset worker error.")));
-      } else {
-        pending.resolve(event.data.buffer as ArrayBuffer);
+        pending.reject(
+          new Error(String(event.data.message ?? "Asset worker error.")),
+        );
+        return;
       }
+
+      pending.resolve(
+        (event.data.geometries as DecodedGeometry[] | undefined) ?? [],
+      );
     };
   }
 
-  fetchCompressed(
+  decode(
     id: string,
     url: string,
-    dracoDecoderPath?: string,
-  ): Promise<ArrayBuffer> {
+    dracoDecoderPath = "/draco/",
+  ): Promise<DecodedGeometry[]> {
     return new Promise((resolve, reject) => {
       this.pending.set(id, { resolve, reject });
-      this.worker.postMessage({
-        type: "decode",
-        id,
-        url,
-        dracoDecoderPath,
-      });
+      this.worker.postMessage({ type: "decode", id, url, dracoDecoderPath });
     });
   }
 
