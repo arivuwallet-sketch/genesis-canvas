@@ -1,6 +1,7 @@
 #include "GenesisAbilities.h"
 
 #include "GameFramework/Character.h"
+#include "GenesisGameplayTags.h"
 
 UGenesisGameplayAbility::UGenesisGameplayAbility()
 {
@@ -9,7 +10,7 @@ UGenesisGameplayAbility::UGenesisGameplayAbility()
 
 UGenesisAbility_DoubleJump::UGenesisAbility_DoubleJump()
 {
-    AbilityTags.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.Movement.DoubleJump")));
+    AbilityTags.AddTag(TAG_Ability_Movement_DoubleJump);
 }
 
 void UGenesisAbility_DoubleJump::ActivateAbility(
@@ -33,7 +34,7 @@ void UGenesisAbility_DoubleJump::ActivateAbility(
 
 UGenesisAbility_Interact::UGenesisAbility_Interact()
 {
-    AbilityTags.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.Interact")));
+    AbilityTags.AddTag(TAG_Ability_Interact);
 }
 
 void UGenesisAbility_Interact::ActivateAbility(
