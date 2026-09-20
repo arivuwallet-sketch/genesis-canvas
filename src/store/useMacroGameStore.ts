@@ -179,6 +179,7 @@ export const useMacroGameStore = create<MacroGameState>((set, get) => ({
 
     if (intent) {
       director.markAction(intent.kind === "SpawnSafeRoom" ? 12 : 8);
+      gameplayEventBus.emit("onDirectorSpawnIntent", intent);
       gameplayEventBus.emit("onGameplayCommand", {
         command: intent.kind,
         payload: intent,
