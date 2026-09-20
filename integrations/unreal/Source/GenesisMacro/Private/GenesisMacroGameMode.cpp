@@ -60,6 +60,15 @@ void AGenesisMacroGameMode::Tick(float DeltaSeconds)
     EvaluateRules();
 }
 
+void AGenesisMacroGameMode::SetWorldState(const FGenesisMacroWorldState& InWorld)
+{
+    World = InWorld;
+    if (AGenesisMacroGameState* GS = GetGameState<AGenesisMacroGameState>())
+    {
+        GS->TimeRemainingSeconds = World.TimeRemainingSeconds;
+    }
+}
+
 void AGenesisMacroGameMode::ConfigureLoop(const FGenesisMacroRules& InRules)
 {
     Rules = InRules;
