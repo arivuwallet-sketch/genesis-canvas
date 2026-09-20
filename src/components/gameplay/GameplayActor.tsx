@@ -1,7 +1,7 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import { useKeyboardControls } from "@react-three/drei";
 import type { RapierRigidBody } from "@react-three/rapier";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import * as THREE from "three";
 import { gameplayEventBus } from "../../gameplay/GameplayEventBus";
 import type { SpawnedObject } from "../../store/useEditorStore";
@@ -11,7 +11,7 @@ import { playFirstRegisteredAnimation } from "../../lib/animationRegistry";
 
 interface GameplayActorProps {
   object: SpawnedObject;
-  bodyRef: React.RefObject<RapierRigidBody | null>;
+  bodyRef: RefObject<RapierRigidBody | null>;
   children: ReactNode;
 }
 
