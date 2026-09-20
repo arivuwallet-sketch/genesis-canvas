@@ -10,7 +10,7 @@ export function CharacterBehaviorPanel() {
   if (!open || characters.length === 0) return null;
 
   return (
-    <aside className="glass-panel pointer-events-auto absolute left-5 top-20 max-h-[65vh] w-72 overflow-y-auto rounded-2xl p-4">
+    <aside className="glass-panel pointer-events-auto absolute left-[18rem] top-20 max-h-[65vh] w-72 overflow-y-auto rounded-2xl p-4">
       <div className="mb-3 flex items-center justify-between">
         <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
           Character behavior
