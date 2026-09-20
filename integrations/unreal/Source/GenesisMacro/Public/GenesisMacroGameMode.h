@@ -22,6 +22,9 @@ public:
     void ConfigureLoop(const FGenesisMacroRules& Rules);
 
     UFUNCTION(BlueprintCallable, Category = "Genesis|Macro")
+    void SetWorldState(const FGenesisMacroWorldState& InWorld);
+
+    UFUNCTION(BlueprintCallable, Category = "Genesis|Macro")
     void AddScore(int32 Delta);
 
     UFUNCTION(BlueprintCallable, Category = "Genesis|Macro")
