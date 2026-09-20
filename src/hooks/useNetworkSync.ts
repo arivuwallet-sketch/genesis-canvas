@@ -1,65 +1,27 @@
-import { useEffect, useState } from "react";
-import {
-  connect,
-  disconnect,
-  getPing,
-  getRemotePlayers,
-  getStatus,
-  subscribeRoster,
-  type NetworkStatus,
-} from "../network/socketClient";
+import { useEffect } from "react";
+import { useColyseusClient } from "./useColyseusClient";
 import { useEditorStore } from "../store/useEditorStore";
-import { useGameConfigStore } from "../store/useGameConfigStore";
 
 /**
- * All socket lifecycle + listeners live here. Mounted exactly once, outside
- * the Canvas, so network chatter never re-renders the 3D scene.
+ * Bridges the modular multiplayer client into the existing HUD store.
+ * The client remains the single transport; this hook only mirrors coarse
+ * status/player counts into Zustand and never handles per-frame transforms.
  */
 export function useNetworkSync() {
+  const client = useColyseusClient();
   const setNetwork = useEditorStore((s) => s.setNetwork);
-  const multiplayerMode = useGameConfigStore((s) => s.multiplayerMode);
-  const [roster, setRoster] = useState<string[]>([]);
 
   useEffect(() => {
-    if (multiplayerMode !== "online" && multiplayerMode !== "online-coop") {
-      disconnect();
-      setRoster([]);
-      setNetwork({ status: "offline", ping: 0, peers: 0 });
-      return;
-    }
+    setNetwork({
+      status:
+        client.status === "connected" || client.status === "simulated"
+          ? client.status
+          : client.status === "connecting"
+            ? "connecting"
+            : "offline",
+      peers: Math.max(0, client.players.length - 1),
+    });
+  }, [client.status, client.players.length, setNetwork]);
 
-    let cancelled = false;
-
-    const syncRoster = () => {
-      if (cancelled) return;
-      setRoster([...getRemotePlayers().keys()]);
-    };
-
-    const onStatus = (status: NetworkStatus) => {
-      if (!cancelled) setNetwork({ status });
-    };
-
-    void connect(onStatus);
-    const unsub = subscribeRoster(syncRoster);
-    syncRoster();
-
-    // Cheap 1 Hz poll for HUD numbers — avoids state churn at packet rate.
-    const timer = setInterval(() => {
-      if (cancelled) return;
-      setNetwork({
-        status: getStatus(),
-        ping: getPing(),
-        peers: getRemotePlayers().size,
-      });
-    }, 1000);
-
-    return () => {
-      cancelled = true;
-      clearInterval(timer);
-      unsub();
-      disconnect();
-    };
-  }, [multiplayerMode, setNetwork]);
-
-  return roster;
+  return client.players;
 }
