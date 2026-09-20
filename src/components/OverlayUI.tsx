@@ -237,7 +237,7 @@ export function OverlayUI() {
               <div className="glass-panel flex items-center gap-1 rounded-full p-1">
                 <button
                   onClick={() => setViewMode("scene")}
-                  className={`${pill} ${viewMode === "scene" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-primary"}}
+                  className={`${pill} ${viewMode === "scene" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-primary"}`}
                 >
                   Scene View
                 </button>
@@ -267,20 +267,20 @@ export function OverlayUI() {
               {characters.length > 0 && (
                 <button
                   onClick={() => setCharacterPanelOpen(!characterPanelOpen)}
-                  className={`${pill} ${characterPanelOpen ? "text-primary" : "text-muted-foreground hover:text-primary"}}
+                  className={`${pill} ${characterPanelOpen ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
                 >
                   Characters · {characters.length}
                 </button>
               )}
               <button
                 onClick={() => setPlayerEnabled(!playerEnabled)}
-                className={`${pill} ${playerEnabled ? "text-primary" : "text-muted-foreground hover:text-primary"}}
+                className={`${pill} ${playerEnabled ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
               >
                 {playerEnabled ? "Player" : "Orbit"}
               </button>
               <button
                 onClick={toggleCameraMode}
-                className={`${pill} text-muted-foreground hover:text-primary}
+                className={`${pill} text-muted-foreground hover:text-primary`}
               >
                 {cameraMode === "first" ? "1st person" : "3rd person"} · C
               </button>
@@ -300,7 +300,7 @@ export function OverlayUI() {
               </button>
               <button
                 onClick={() => setWebgpuEnabled(!webgpuEnabled)}
-                className={`${pill} ${webgpuEnabled ? "text-primary" : "text-muted-foreground hover:text-primary"}}
+                className={`${pill} ${webgpuEnabled ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
                 title={rendererLabel}
               >
                 {webgpuEnabled ? rendererLabel : "WebGL2"}
@@ -366,11 +366,7 @@ export function OverlayUI() {
               e.preventDefault();
               const prompt = chatInput.trim();
               if (!prompt) return;
-              if (activeTab === "master") {
-                runMasterPrompt(prompt);
-                setChatInput("");
-                return;
-              }
+              if (activeTab === "master") runMasterPrompt(prompt);
               submitPrompt();
             }}
             className="glass-panel flex w-full items-center gap-3 rounded-2xl px-4 py-3"
