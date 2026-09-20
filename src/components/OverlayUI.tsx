@@ -15,6 +15,7 @@ import { FileMenu } from "./FileMenu";
 import { CinematicsPanel } from "./cinematics/CinematicsPanel";
 import { CinematicsToggle } from "./cinematics/CinematicsToggle";
 import { MultiplayerMenu } from "./MultiplayerMenu";
+import { GameplayHud } from "./gameplay/GameplayHud";
 
 const QUALITY: { value: GraphicsQuality; label: string }[] = [
   { value: "low", label: "Low" },
@@ -417,6 +418,7 @@ export function OverlayUI() {
           </div>
         </>
       )}
+      {isPlaying && <GameplayHud playerId="player_1" showMiniMap />}
       <CinematicsPanel />
     </div>
   );
