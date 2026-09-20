@@ -94,15 +94,15 @@ export function GenreSelector() {
             </span>
             {MULTIPLAYER_MODES.map((m) => (
               <button
-                key={m}
-                onClick={() => setMultiplayerMode(m)}
+                key={m.value}
+                onClick={() => setMultiplayerMode(m.value)}
                 className={`rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.14em] transition-colors ${
-                  multiplayerMode === m
+                  multiplayerMode === m.value
                     ? "border-primary/50 bg-primary/15 text-primary"
                     : "border-border/60 text-muted-foreground hover:text-primary"
                 }`}
               >
-                {m}
+                {m.label}
               </button>
             ))}
           </div>
