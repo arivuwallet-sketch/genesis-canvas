@@ -17,6 +17,7 @@ import { useGameConfigStore, type CutsceneData } from "../store/useGameConfigSto
 import { useVfxStore, type DecalType, type ParticlePreset } from "../store/useVfxStore";
 import { requestNetworkedBoss } from "../hooks/useColyseusClient";
 import { spawnEcsBatch, updateEcsEntity, removeEcsEntity, clearEcs, ecsEntityFromRenderObject } from "../ecs/EcsCommandBus";
+import { executeGameplayCommands } from "../gameplay/GameplayCommandExecutor";
 
 const GEOMETRIES: PrimitiveGeometry[] = [
   "box",
@@ -321,6 +322,16 @@ export function applyCommand(input: unknown): CommandResult {
   // Batched payloads: { actions: [...] } or { commands: [...] }
   const batch = input["actions"] ?? input["commands"] ?? input["objects"];
   if (Array.isArray(batch) && !("action" in input)) return applyCommand(batch);
+
+  const gameplayCommand = input["command"];
+  if (
+    gameplayCommand === "GrantAbility" ||
+    gameplayCommand === "TriggerDialogue" ||
+    gameplayCommand === "SpawnWave" ||
+    gameplayCommand === "ModifyAttribute"
+  ) {
+    return executeGameplayCommands(input);
+  }
 
   const store = useEditorStore.getState();
   const action = String(input["action"] ?? input["op"] ?? "").toLowerCase();
