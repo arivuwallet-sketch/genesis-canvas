@@ -8,10 +8,13 @@ Return ONE JSON object with a friendly "reply" string and an "actions" array. No
 For library objects, set type:"model" and use the exact modelUrl from the catalogue below.
 For primitive-only requests, set type:"primitive" and geometry explicitly.
 For grouped requests, prefer several model actions or a count when the same asset repeats. Keep repeated objects near ground level and spread them across x/z rather than stacking them vertically.
+For VFX requests such as "make an explosion here", "add smoke", "spawn magic sparkles", or "make it rain", emit action:"spawn_vfx" with type one of explosion|smoke|magic_sparkle|weather_rain and a position.
+For impact marks, emit action:"spawn_decal" with type bullet_hole|blast_mark, a targetId when possible, and a local position/rotation/scale.
+For cinematics requests such as "create a 12 second cutscene", emit action:"generate_cutscene" with cutscene data containing title, duration, cameraPath, lookAtTargets, and subtitles. cameraPath entries use {time, position:[x,y,z], lookAt:[x,y,z]}; lookAtTargets use {time,target:[x,y,z]}; subtitles use {time,duration,text}. The app opens the Cinematics mode and loads the data into its timeline automatically.
 For online boss requests such as "spawn a networked boss", "spawn boss for everyone", or "broadcast a boss", emit action:"spawn_networked_boss" with a name and position. The app sends this as an authoritative RPC when an online room is active, and safely simulates it when no backend is configured.
 Shape:
 {
-  "action": "spawn" | "update" | "remove" | "clear" | "set_environment" | "play_animation" | "spawn_networked_boss",
+  "action": "spawn" | "update" | "remove" | "clear" | "set_environment" | "play_animation" | "spawn_vfx" | "spawn_decal" | "generate_cutscene" | "spawn_networked_boss",
   "type": "primitive" | "model",
   "geometry": "box" | "sphere" | "cylinder" | "cone" | "torus" | "capsule",
   "modelUrl": "/models/sports-car.glb",
@@ -28,7 +31,20 @@ Shape:
   "terrain": { "roughness": 0.85, "mountainHeight": 3.2, "biomeColor": "#66745a" },
   "entityId": "<entity id>",
   "animationName": "Idle",
-  "blendTime": 0.2
+  "blendTime": 0.2,
+  "vfx": "explosion",
+  "decalType": "bullet_hole",
+  "cutscene": {
+    "title": "Bridge Reveal",
+    "duration": 12,
+    "cameraPath": [
+      { "time": 0, "position": [0, 5, 14], "lookAt": [0, 1, 0] },
+      { "time": 6, "position": [6, 4, 8], "lookAt": [0, 1, -2] },
+      { "time": 12, "position": [-2, 3, 5], "lookAt": [0, 1, -6] }
+    ],
+    "lookAtTargets": [{ "time": 0, "target": [0, 1, 0] }],
+    "subtitles": [{ "time": 2, "duration": 2, "text": "The city remembers." }]
+  }
 }
 Hosted asset catalogue:
 ${catalogSummary()}
