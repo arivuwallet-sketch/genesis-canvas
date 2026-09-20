@@ -13,7 +13,8 @@ import {
   type SpawnedObject,
 } from "../store/useEditorStore";
 import { MODEL_CATALOG, matchCatalog, type CatalogEntry } from "../data/modelCatalog";
-import { useGameConfigStore } from "../store/useGameConfigStore";
+import { useGameConfigStore, type CutsceneData } from "../store/useGameConfigStore";
+import { useVfxStore, type DecalType, type ParticlePreset } from "../store/useVfxStore";
 import { requestNetworkedBoss } from "../hooks/useColyseusClient";
 
 const GEOMETRIES: PrimitiveGeometry[] = [
@@ -209,6 +210,82 @@ function toObjectPatch(cmd: Record<string, unknown>): Partial<SpawnedObject> {
   return patch;
 }
 
+const PARTICLE_PRESETS: ParticlePreset[] = ["explosion", "smoke", "magic_sparkle", "weather_rain"];
+const DECAL_TYPES: DecalType[] = ["bullet_hole", "blast_mark"];
+
+function particlePreset(v: unknown): ParticlePreset | null {
+  if (typeof v !== "string") return null;
+  const value = v.toLowerCase().trim() as ParticlePreset;
+  return PARTICLE_PRESETS.includes(value) ? value : null;
+}
+
+function decalType(v: unknown): DecalType | null {
+  if (typeof v !== "string") return null;
+  const value = v.toLowerCase().trim() as DecalType;
+  return DECAL_TYPES.includes(value) ? value : null;
+}
+
+function cutsceneFromInput(value: unknown): CutsceneData | null {
+  if (!isRecord(value)) return null;
+  const title = typeof value["title"] === "string" && value["title"].trim()
+    ? value["title"].trim().slice(0, 80)
+    : "AI Generated Cutscene";
+  const duration = num(value["duration"], 10, 0.5, 600);
+
+  const cameraPathRaw = Array.isArray(value["cameraPath"]) ? value["cameraPath"] : [];
+  const cameraPath = cameraPathRaw.slice(0, 64).flatMap((item) => {
+    if (!isRecord(item)) return [];
+    const position = vec3(item["position"], [0, 4, 10], -100, 100);
+    const lookAt = vec3(item["lookAt"] ?? item["look_at"], [0, 1, 0], -100, 100);
+    if (!position || !lookAt) return [];
+    return [{
+      time: clamp(num(item["time"], 0, 0, duration), 0, duration),
+      position,
+      lookAt,
+    }];
+  }).sort((a, b) => a.time - b.time);
+
+  const lookAtRaw = Array.isArray(value["lookAtTargets"]) ? value["lookAtTargets"] : [];
+  const lookAtTargets = lookAtRaw.slice(0, 64).flatMap((item) => {
+    if (!isRecord(item)) return [];
+    const target = vec3(item["target"] ?? item["position"], [0, 1, 0], -100, 100);
+    if (!target) return [];
+    return [{
+      time: clamp(num(item["time"], 0, 0, duration), 0, duration),
+      target,
+    }];
+  }).sort((a, b) => a.time - b.time);
+
+  const subtitleRaw = Array.isArray(value["subtitles"]) ? value["subtitles"] : [];
+  const subtitles = subtitleRaw.slice(0, 64).flatMap((item) => {
+    if (!isRecord(item) || typeof item["text"] !== "string") return [];
+    const text = item["text"].trim().slice(0, 240);
+    if (!text) return [];
+    const time = clamp(num(item["time"], 0, 0, duration), 0, duration);
+    const remaining = Math.max(0.1, duration - time);
+    return [{
+      time,
+      duration: Math.min(remaining, Math.max(0.1, num(item["duration"], 2.5, 0.1, 30))),
+      text,
+    }];
+  }).sort((a, b) => a.time - b.time);
+
+  const fallbackPosition: [number, number, number] = [0, 4, 10];
+  const fallbackLookAt: [number, number, number] = [0, 1, 0];
+
+  return {
+    title,
+    duration,
+    cameraPath: cameraPath.length
+      ? cameraPath
+      : [{ time: 0, position: fallbackPosition, lookAt: fallbackLookAt }],
+    lookAtTargets: lookAtTargets.length
+      ? lookAtTargets
+      : [{ time: 0, target: fallbackLookAt }],
+    subtitles,
+  };
+}
+
 function resolveTargetId(cmd: Record<string, unknown>): string | null {
   const raw = cmd["targetId"] ?? cmd["id"] ?? cmd["target"];
   const state = useEditorStore.getState();
@@ -268,6 +345,40 @@ export function applyCommand(input: unknown): CommandResult {
         game.setTimeOfDay(num(input["timeOfDay"], game.timeOfDay, 0, 24));
       }
       return { ok: true, message: "Updated the procedural environment." };
+    }
+
+    case "spawn_vfx":
+    case "spawnvfx": {
+      const type = particlePreset(input["type"] ?? input["preset"] ?? input["vfx"]);
+      if (!type) return { ok: false, message: "VFX preset must be explosion, smoke, magic_sparkle, or weather_rain." };
+      const position = vec3(input["position"] ?? input["pos"], [0, 1, 0]) ?? [0, 1, 0];
+      const id = useVfxStore.getState().spawnVfx(type, position);
+      return { ok: true, message: `Spawned ${type.replace("_", " ")} VFX ${id.slice(0, 6)}.` };
+    }
+
+    case "spawn_decal":
+    case "add_decal":
+    case "decal": {
+      const type = decalType(input["type"] ?? input["decalType"] ?? input["kind"]);
+      if (!type) return { ok: false, message: "Decal type must be bullet_hole or blast_mark." };
+      const targetId = resolveTargetId(input);
+      const position = vec3(input["position"] ?? input["pos"], [0, 0, 0], -10, 10) ?? [0, 0, 0];
+      const rotation = vec3(input["rotation"] ?? input["rot"], [0, 0, 0], -Math.PI * 4, Math.PI * 4) ?? [0, 0, 0];
+      const scale = num(input["scale"] ?? input["size"], type === "bullet_hole" ? 0.24 : 0.8, 0.03, 10);
+      const id = useVfxStore.getState().addDecal({ type, targetId, position, rotation, scale });
+      return { ok: true, message: `Added ${type.replace("_", " ")} decal ${id.slice(0, 6)}.` };
+    }
+
+    case "set_cutscene":
+    case "cutscene_data":
+    case "generate_cutscene": {
+      const value = input["cutscene"] ?? input["data"] ?? input;
+      const data = cutsceneFromInput(value);
+      if (!data) return { ok: false, message: "Cutscene data is malformed." };
+      const game = useGameConfigStore.getState();
+      game.setCutsceneData(data);
+      game.setCinematicsOpen(true);
+      return { ok: true, message: `Loaded ${data.title} into the cinematics timeline (${data.duration.toFixed(1)}s).` };
     }
 
     case "play_animation":
