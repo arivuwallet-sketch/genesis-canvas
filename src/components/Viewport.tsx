@@ -36,7 +36,7 @@ export function Viewport() {
    * WebGLRenderer instead so older devices keep rendering.
    */
   const glFactory = useMemo(() => {
-    if (!webgpuEnabled) return undefined;
+    if (!webgpuEnabled || multiplayerMode === "split-screen") return undefined;
 
     return async (props: Record<string, unknown>) => {
       try {
@@ -71,11 +71,11 @@ export function Viewport() {
         });
       }
     };
-  }, [webgpuEnabled, setRendererLabel]);
+  }, [webgpuEnabled, multiplayerMode, setRendererLabel]);
 
   return (
     <Canvas
-      key={webgpuEnabled ? "webgpu" : "webgl"}
+      key={webgpuEnabled && multiplayerMode !== "split-screen" ? "webgpu" : "webgl"}
       shadows
       dpr={[1, 2]}
       camera={{ position: [9, 7, 12], fov: 50 }}
