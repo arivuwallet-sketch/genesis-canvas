@@ -10,6 +10,9 @@ import { AgentTabs, AgentPanel } from "./agents/AgentTabs";
 import { PipelineView } from "./agents/PipelineView";
 import { ChatMenuCard, PlacedMenus } from "./agents/GameMenuWidget";
 import { CharacterBehaviorPanel } from "./CharacterBehaviorPanel";
+import { FileMenu } from "./FileMenu";
+import { CinematicsPanel } from "./cinematics/CinematicsPanel";
+import { CinematicsToggle } from "./cinematics/CinematicsToggle";
 import { MultiplayerMenu } from "./MultiplayerMenu";
 
 const QUALITY: { value: GraphicsQuality; label: string }[] = [
@@ -223,6 +226,7 @@ export function OverlayUI() {
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-2">
+          <FileMenu />
           {isPlaying ? (
             <button
               onClick={() => setPlaying(false)}
@@ -287,6 +291,7 @@ export function OverlayUI() {
                 {cameraMode === "first" ? "1st person" : "3rd person"} · C
               </button>
               <QualitySelect />
+              <CinematicsToggle />
               <button
                 type="button"
                 onClick={() => setMultiplayerMenuOpen(!multiplayerMenuOpen)}
@@ -408,6 +413,7 @@ export function OverlayUI() {
           </div>
         </>
       )}
+      <CinematicsPanel />
     </div>
   );
 }
