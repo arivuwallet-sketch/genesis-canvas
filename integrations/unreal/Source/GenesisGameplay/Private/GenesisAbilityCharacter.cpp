@@ -8,6 +8,7 @@
 #include "GameFramework/PlayerController.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
+#include "InputActionValue.h"
 
 AGenesisAbilityCharacter::AGenesisAbilityCharacter()
 {
@@ -80,15 +81,12 @@ void AGenesisAbilityCharacter::SetupInput()
         return;
     }
 
-    if (ULocalPlayer* LocalPlayer =
-            PlayerController->GetLocalPlayer())
+    if (ULocalPlayer* LocalPlayer = PlayerController->GetLocalPlayer())
     {
         if (UEnhancedInputLocalPlayerSubsystem* InputSubsystem =
                 LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
         {
-            InputSubsystem->AddMappingContext(
-                GameplayMappingContext,
-                0);
+            InputSubsystem->AddMappingContext(GameplayMappingContext, 0);
         }
     }
 
@@ -101,7 +99,63 @@ void AGenesisAbilityCharacter::SetupInput()
                 PrimaryAction,
                 ETriggerEvent::Started,
                 this,
-                &ThisClass::ActivateAbilityByClass);
+                &ThisClass::HandlePrimaryInput);
+        }
+
+        if (InteractAction)
+        {
+            EnhancedInput->BindAction(
+                InteractAction,
+                ETriggerEvent::Started,
+                this,
+                &ThisClass::HandleInteractInput);
+        }
+
+        if (JumpAction)
+        {
+            EnhancedInput->BindAction(
+                JumpAction,
+                ETriggerEvent::Started,
+                this,
+                &ThisClass::HandleJumpInput);
         }
     }
+}
+
+void AGenesisAbilityCharacter::HandlePrimaryInput(
+    const FInputActionValue& Value)
+{
+    if (PrimaryAction)
+    {
+        if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
+        {
+            const FGameplayTag Tag = FGameplayTag::RequestGameplayTag(
+                TEXT("Ability.Primary"));
+            ASC->TryActivateAbilitiesByTag(
+                FGameplayTagContainer(Tag),
+                true);
+        }
+    }
+}
+
+void AGenesisAbilityCharacter::HandleInteractInput(
+    const FInputActionValue& Value)
+{
+    if (InteractAction)
+    {
+        if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
+        {
+            const FGameplayTag Tag = FGameplayTag::RequestGameplayTag(
+                TEXT("Ability.Interact"));
+            ASC->TryActivateAbilitiesByTag(
+                FGameplayTagContainer(Tag),
+                true);
+        }
+    }
+}
+
+void AGenesisAbilityCharacter::HandleJumpInput(
+    const FInputActionValue& Value)
+{
+    Jump();
 }
