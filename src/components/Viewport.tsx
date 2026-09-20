@@ -1,12 +1,11 @@
 import { Canvas } from "@react-three/fiber";
-import { Environment, Lightformer, OrbitControls, Grid } from "@react-three/drei";
+import { OrbitControls, Grid } from "@react-three/drei";
 import { Perf } from "r3f-perf";
 import { Suspense, useMemo } from "react";
 import * as THREE from "three";
 import { PhysicsWorld } from "./PhysicsWorld";
 import { PlayerKeyboardProvider } from "./player/PlayerController";
 import { useEditorStore } from "../store/useEditorStore";
-import { useGraphicsStore } from "../store/useGraphicsStore";
 import { Effects } from "./Effects";
 import { SelectionGizmo } from "./SelectionGizmo";
 import { RemotePlayers } from "./network/RemotePlayers";
@@ -21,7 +20,6 @@ export function Viewport() {
   const webgpuEnabled = useEditorStore((s) => s.webgpuEnabled);
   const setSelectedId = useEditorStore((s) => s.setSelectedId);
   const setRendererLabel = useEditorStore((s) => s.setRendererLabel);
-  const textureQuality = useGraphicsStore((s) => s.textureQuality);
   const isPlaying = useGameConfigStore((s) => s.isPlaying);
   const viewMode = useGameConfigStore((s) => s.viewMode);
   const logicOpen = useLogicStore((s) => s.logicOpen);
