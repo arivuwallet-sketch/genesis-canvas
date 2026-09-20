@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   UNITY_COMMAND_JSON_SCHEMA,
   UNITY_LLM_SYSTEM_PROMPT,
+  buildUnityLlmUserPrompt,
   parseUnityCommandBatch,
   type UnityCommandBatch,
 } from "../../../lib/unityCommandSchema";
@@ -30,7 +31,7 @@ async function requestOpenAI(prompt: string): Promise<string> {
     body: JSON.stringify({
       model: process.env["OPENAI_MODEL"] ?? "gpt-5",
       instructions: UNITY_LLM_SYSTEM_PROMPT,
-      input: prompt,
+      input: buildUnityLlmUserPrompt(prompt),
       text: {
         format: {
           type: "json_schema",
@@ -80,7 +81,7 @@ async function requestAnthropic(prompt: string): Promise<string> {
         },
       ],
       tool_choice: { type: "tool", name: "emit_unity_commands" },
-      messages: [{ role: "user", content: prompt }],
+      messages: [{ role: "user", content: buildUnityLlmUserPrompt(prompt) }],
     }),
   });
 
