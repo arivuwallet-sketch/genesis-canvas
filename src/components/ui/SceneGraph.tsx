@@ -13,7 +13,7 @@ import {
   Trash2,
   Video,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useEditorStore } from "../../store/useEditorStore";
 import {
   DIRECTIONAL_LIGHT_ID,
@@ -201,6 +201,29 @@ export function SceneGraph() {
   const removeObject = useEditorStore((s) => s.removeObject);
   const spawnObject = useEditorStore((s) => s.spawnObject);
 
+  // Generated editor entities mirror into the global scene graph.
+  useEffect(() => {
+    useSceneStore.getState().upsertObjectNodes(
+      spawnedObjects.map((object) => ({
+        id: object.id,
+        name: object.name,
+        position: object.position,
+      })),
+    );
+  }, [spawnedObjects]);
+
+  // Keep viewport selection and outliner selection synchronized.
+  useEffect(() => {
+    if (!selectedEditorId) {
+      if (selectedNodeId?.startsWith("object:")) setSelectedNodeId(null);
+      return;
+    }
+    const objectNodeId = `object:${selectedEditorId}`;
+    if (nodes.some((node) => node.id === objectNodeId) && selectedNodeId !== objectNodeId) {
+      setSelectedNodeId(objectNodeId);
+    }
+  }, [nodes, selectedEditorId, selectedNodeId, setSelectedNodeId]);
+
   const visibleNodes = useMemo(() => {
     const query = search.trim().toLowerCase();
     if (!query) return nodes;
@@ -252,11 +275,12 @@ export function SceneGraph() {
   };
 
   const toggleVisibility = (node: SceneNode) => {
-    updateNode(node.id, { visible: !node.visible });
+    const nextVisible = !node.visible;
+    updateNode(node.id, { visible: nextVisible });
     if (node.id.startsWith("object:")) {
-      // Visibility for spawned models is mirrored in a lightweight scene flag.
-      // The renderer reads this flag by node id.
-      return;
+      useEditorStore.getState().updateObject(node.id.slice("object:".length), {
+        visible: nextVisible,
+      });
     }
   };
 
@@ -278,6 +302,8 @@ export function SceneGraph() {
         id: undefined,
         name: `${object.name} Copy`,
         position: [object.position[0] + 1.5, object.position[1], object.position[2] + 1.5],
+        visible: object.visible,
+        locked: object.locked,
       });
       setSelectedEditorId(newId);
       return;
