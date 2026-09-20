@@ -89,10 +89,11 @@ export const useMacroGameStore = create<MacroGameState>((set, get) => ({
 
   tickDirector: (deltaSeconds) => {
     const snapshot = director.update(deltaSeconds, get().telemetry);
-    const intent = chooseSpawnIntent(snapshot);
+    const intent = chooseSpawnIntent(snapshot, DEFAULT_DIRECTOR_CONFIG);
     set({ director: snapshot, lastSpawnIntent: intent, directorRunning: true });
 
     if (intent) {
+      director.markAction(intent.kind === "SpawnSafeRoom" ? 12 : 8);
       gameplayEventBus.emit("onGameplayCommand", {
         command: intent.kind,
         payload: intent,
