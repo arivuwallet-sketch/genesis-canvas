@@ -251,6 +251,14 @@ export function applyCommand(input: unknown): CommandResult {
     case "add": {
       const count = clamp(num(input["count"], 1, 1, 12), 1, 12);
       const patch = toObjectPatch(input);
+      const requestedModel = input["modelUrl"] ?? input["url"] ?? input["model"] ?? input["asset"];
+      const requestedText = requestedModel ?? input["name"] ?? input["object"];
+      const matchedModel = resolveModel(requestedText);
+      const unknownModelFallback =
+        typeof requestedText === "string" &&
+        !matchedModel &&
+        !geometry(input["geometry"] ?? input["shape"] ?? input["primitive"]) &&
+        (input["type"] === "model" || requestedModel !== undefined);
       let last = "";
       const entry = resolveModel(input["modelUrl"] ?? input["url"] ?? input["model"] ?? input["asset"] ?? input["object"] ?? input["name"]);
       const base = patch.position ?? [0, 1, 0];
@@ -276,7 +284,9 @@ export function applyCommand(input: unknown): CommandResult {
       }
       const description = patch.kind === "model"
         ? `real ${patch.name ?? entry?.name ?? "library model"}`
-        : `primitive ${patch.geometry ?? "box"}`;
+        : unknownModelFallback
+          ? `procedural stand-in for unknown "${String(requestedText).slice(0, 32)}"`
+          : `primitive ${patch.geometry ?? "box"}`;
       return {
         ok: true,
         message: `Spawned ${count} ${description}${count > 1 ? "s" : ""} (${last.slice(0, 6)}).`,
