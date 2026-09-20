@@ -89,7 +89,8 @@
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "react-unity-webgl": "^10.2.0",
-    "protobufjs": "^8.8.0"
+    "protobufjs": "^8.8.0",
+    "ws": "^8.21.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
