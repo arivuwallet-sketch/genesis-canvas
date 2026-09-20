@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { playRegisteredAnimation } from "../lib/animationRegistry";
 
 export type CameraMode = "first" | "third";
 export type GraphicsQuality = "low" | "medium" | "ultra";
@@ -82,6 +83,7 @@ interface EditorState {
   removeObject: (id: string) => void;
   clearObjects: () => void;
   carveObject: (id: string, carve: Carve) => boolean;
+  playAnimation: (entityId: string, animationName: string, blendTime?: number) => boolean;
 
   /* selection + gizmos */
   selectedId: string | null;
@@ -198,6 +200,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     }));
     return true;
   },
+  playAnimation: (entityId, animationName, blendTime = 0.2) =>
+    playRegisteredAnimation(entityId, animationName, blendTime),
 
   selectedId: null,
   setSelectedId: (id) => set({ selectedId: id }),
