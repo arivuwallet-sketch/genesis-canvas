@@ -52,6 +52,7 @@ function SpatialSource({
   zones: AudioZone[];
 }) {
   const camera = useThree((state) => state.camera);
+  const scene = useThree((state) => state.scene);
   const audioRef = useRef<THREE.PositionalAudio | null>(null);
   const activeZoneRef = useRef<string | null>(null);
 
@@ -67,6 +68,7 @@ function SpatialSource({
     const audio = new THREE.PositionalAudio(listener);
     audioRef.current = audio;
     audio.position.set(...source.position);
+    scene.add(audio);
     audio.setVolume(Math.max(0, Math.min(1, source.volume)));
     audio.setRefDistance(Math.max(0.1, source.refDistance));
     audio.setMaxDistance(Math.max(source.refDistance, source.maxDistance));
@@ -92,10 +94,11 @@ function SpatialSource({
     return () => {
       disposed = true;
       if (audio.isPlaying) audio.stop();
+      scene.remove(audio);
       audio.disconnect();
       audioRef.current = null;
     };
-  }, [listener, source]);
+  }, [listener, scene, source]);
 
   useFrame(() => {
     const audio = audioRef.current;
