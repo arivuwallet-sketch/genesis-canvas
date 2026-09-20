@@ -4,8 +4,19 @@ import { startAgentActivitySimulation } from "../store/useAgentActivityStore";
 import { getLatestSceneStateJson } from "../workers/SceneStateSerializer";
 import { runVisualQaAndApplyCorrection } from "../utils/visualQa";
 import { useGraphicsStore } from "../store/useGraphicsStore";
+import { useGameConfigStore } from "../store/useGameConfigStore";
 import { matchCatalog } from "../data/modelCatalog";
 import { applyAiResponse, applyCommand, extractAssistantReply } from "../utils/CommandParser";
+
+/** Prompts that can be completed deterministically without the remote AI pipeline. */
+export function isImmediatePrompt(prompt: string): boolean {
+  const p = prompt.toLowerCase().trim();
+  if (/^(clear|reset)\b/.test(p)) return true;
+  if (/\b(carve|cut|drill|punch)\b/.test(p) && /\b(hole|opening|window)\b/.test(p)) {
+    return true;
+  }
+  return /\b(create|build|make|spawn|add|generate|place)\b/.test(p) && !!matchCatalog(p);
+}
 
 /** Instant local shortcuts so obvious commands never wait on the network. */
 function localShortcut(prompt: string): string | null {
@@ -77,14 +88,15 @@ export function useAiCommand() {
 
     store.setChatInput("");
     store.pushLog(prompt, "user");
-    startAgentActivitySimulation(prompt);
 
     const shortcut = localShortcut(prompt);
     if (shortcut) {
+      useGameConfigStore.getState().resetPipeline();
       store.pushLog(shortcut, "system");
       return;
     }
 
+    startAgentActivitySimulation(prompt);
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
