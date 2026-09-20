@@ -445,7 +445,7 @@ export const useGameConfigStore = create<GameConfigState>((set, get) => ({
                 position: { x: 760, y: 120 },
                 data: {
                   kind: "action",
-                  label: genre === "Racing" ? "Spawn Vehicle" : genre === "Platformer" ? "Enable Jump" : "Spawn Player",
+                  label: primaryGenre === "Racing" ? "Spawn Vehicle" : primaryGenre === "Platformer" ? "Enable Jump" : "Spawn Player",
                   detail: outputs.mechanics[0] ?? "Initialize core loop",
                 },
               },
