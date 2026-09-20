@@ -18,6 +18,9 @@ import {
   SplitScreenSceneActors,
   SplitScreenInputBridge,
 } from "./SplitScreenView";
+import { ParticleManager } from "./ParticleManager";
+import { SoundManager } from "./SoundManager";
+import { TheatreStage } from "./cinematics/TheatreStage";
 
 export function Viewport() {
   const showPerf = useEditorStore((s) => s.showPerf);
