@@ -25,7 +25,7 @@ export function GameplayActor({
   if (object.gameplay.archetype === "vehicle") {
     return (
       <group ref={root}>
-        <VehicleGameplay object={object} bodyRef={bodyRef} />
+        <VehicleGameplay object={object} bodyRef={bodyRef} visualRoot={root} />
         {children}
       </group>
     );
@@ -70,9 +70,32 @@ function VehicleGameplay({
   const clearActiveActor = useGameplayControlStore((state) => state.clearActiveActor);
 
   const [doorsOpen, setDoorsOpen] = useState(false);
+  const [hasNamedDoors, setHasNamedDoors] = useState(false);
   const lastInteract = useRef(false);
   const yaw = useRef(0);
   const initialized = useRef(false);
+
+  useEffect(() => {
+    const root = visualRoot.current;
+    if (!root) return;
+
+    let found = false;
+    root.traverse((node) => {
+      if (/door|port|hatch|trunk/i.test(node.name)) found = true;
+    });
+    setHasNamedDoors(found);
+  }, [visualRoot]);
+
+  useEffect(() => {
+    const root = visualRoot.current;
+    if (!root || !hasNamedDoors) return;
+
+    root.traverse((node) => {
+      if (!/door|port|hatch|trunk/i.test(node.name)) return;
+      const direction = /left|driver/i.test(node.name) ? -1 : 1;
+      node.rotation.y = direction * (doorsOpen ? Math.PI / 3 : 0);
+    });
+  }, [doorsOpen, hasNamedDoors, visualRoot]);
 
   useEffect(() => {
     if (!object.gameplay.autoControl || activeActorId) return;
@@ -193,10 +216,12 @@ function VehicleGameplay({
 
   return (
     <>
-      <VehicleFallbackDoors
-        visible={doorsOpen}
-        object={object}
-      />
+      {!hasNamedDoors && (
+        <VehicleFallbackDoors
+          visible={doorsOpen}
+          object={object}
+        />
+      )}
     </>
   );
 }
