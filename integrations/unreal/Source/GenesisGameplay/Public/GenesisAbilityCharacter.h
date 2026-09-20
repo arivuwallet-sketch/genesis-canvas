@@ -51,4 +51,7 @@ protected:
 
 private:
     void SetupInput();
+    void HandlePrimaryInput(const struct FInputActionValue& Value);
+    void HandleInteractInput(const struct FInputActionValue& Value);
+    void HandleJumpInput(const struct FInputActionValue& Value);
 };
