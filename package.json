@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "agent-server": "node server/agent-server.cjs"
+    "agent-server": "node server/agent-server.cjs",
+    "protocol:generate": "node scripts/generate-universal-protobuf.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1"
