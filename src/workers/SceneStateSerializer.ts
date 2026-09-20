@@ -92,7 +92,20 @@ export class SceneStateSerializer {
     return this.latest;
   }
 
-  getLatestDenseJson() { return JSON.stringify(this.getLatest()); }
+  getLatestDenseJson() {
+    return JSON.stringify(this.getLatest());
+  }
+
+  getCurrentDenseJson() {
+    if (!this.started) this.start();
+    const entities = [...this.previous.values()].map((encoded) => JSON.parse(encoded) as CompactEntity);
+    return JSON.stringify({
+      v: 1,
+      t: this.latest.t,
+      entity_count: entities.length,
+      entities,
+    });
+  }
 
   private tick() {
     const ecs = useEcsStore.getState().entities;
@@ -125,4 +138,5 @@ export const sceneStateSerializer = new SceneStateSerializer();
 export const startSceneStateSerializer = () => sceneStateSerializer.start();
 export const stopSceneStateSerializer = () => sceneStateSerializer.stop();
 export const getLatestSceneState = () => sceneStateSerializer.getLatest();
-export const getLatestSceneStateJson = () => sceneStateSerializer.getLatestDenseJson();
+export const getLatestSceneStateJson = () => sceneStateSerializer.getCurrentDenseJson();
+export const getLatestSceneStateDeltaJson = () => sceneStateSerializer.getLatestDenseJson();
