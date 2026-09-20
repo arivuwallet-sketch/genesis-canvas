@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { Play, Square, SunMedium, Users } from "lucide-react";
 import { useEditorStore, type GraphicsQuality } from "../store/useEditorStore";
 import { useNetworkSync } from "../hooks/useNetworkSync";
-import { useAiCommand } from "../hooks/useAiCommand";
+import { isImmediatePrompt, useAiCommand } from "../hooks/useAiCommand";
 import { hudTunnel } from "./hud/Diagnostics";
 import { useGameConfigStore } from "../store/useGameConfigStore";
 import { GenreSelector } from "./blueprint/GenreSelector";
@@ -390,8 +390,10 @@ export function OverlayUI() {
                   e.preventDefault();
                   const prompt = chatInput.trim();
                   if (!prompt) return;
-                  if (activeTab === "master") runMasterPrompt(prompt);
-                  submitPrompt();
+                  if (activeTab === "master" && !isImmediatePrompt(prompt)) {
+                    runMasterPrompt(prompt);
+                  }
+                  void submitPrompt();
                 }}
                 className="glass-panel flex w-full items-center gap-3 rounded-2xl px-4 py-3"
               >
