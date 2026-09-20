@@ -162,6 +162,22 @@ export function parseUnityCommandBatch(value: unknown): UnityCommandBatch {
       throw new Error(`Command ${index + 1} has an invalid prefab_name.`);
     }
 
+    if (
+      action === "instantiate" &&
+      (typeof prefabName !== "string" || !prefabName.trim())
+    ) {
+      throw new Error(`Command ${index + 1} instantiate requires prefab_name.`);
+    }
+
+    if (
+      (action === "destroy" ||
+        action === "transform" ||
+        action === "apply_material") &&
+      (typeof targetId !== "string" || !targetId.trim())
+    ) {
+      throw new Error(`Command ${index + 1} ${action} requires target_id.`);
+    }
+
     if (!parameters || typeof parameters !== "object") {
       throw new Error(`Command ${index + 1} is missing parameters.`);
     }
