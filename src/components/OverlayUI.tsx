@@ -10,6 +10,7 @@ import { AgentTabs, AgentPanel } from "./agents/AgentTabs";
 import { PipelineView } from "./agents/PipelineView";
 import { ChatMenuCard, PlacedMenus } from "./agents/GameMenuWidget";
 import { CharacterBehaviorPanel } from "./CharacterBehaviorPanel";
+import { AgentActivityFeed } from "./agents/AgentActivityFeed";
 import { FileMenu } from "./FileMenu";
 import { CinematicsPanel } from "./cinematics/CinematicsPanel";
 import { CinematicsToggle } from "./cinematics/CinematicsToggle";
@@ -329,6 +330,9 @@ export function OverlayUI() {
 
       {!isPlaying && (
         <>
+          <div className="pointer-events-auto fixed bottom-28 right-5 z-30 w-[min(420px,calc(100vw-2rem))]">
+            <AgentActivityFeed />
+          </div>
           <MultiplayerMenu />
           {!playerEnabled && selectedId && (
             <div className="pointer-events-auto absolute left-1/2 top-20 flex -translate-x-1/2 gap-2">
