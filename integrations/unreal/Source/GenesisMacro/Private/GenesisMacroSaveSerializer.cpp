@@ -125,16 +125,36 @@ bool FGenesisMacroSaveSerializer::Serialize(
     int64 CompressedSize =
         FCompression::CompressMemoryBound(
             NAME_Zlib,
-            Raw.Num(),
+            static_cast<int64>(Raw.Num()),
             COMPRESS_Default,
             0);
 
-    OutCompressed.SetNumUninitialized(static_cast<int32>(CompressedSize));
+    const int32 HeaderBytes = sizeof(uint32) + sizeof(uint8) + sizeof(uint32);
+    OutCompressed.SetNumUninitialized(
+        HeaderBytes + static_cast<int32>(CompressedSize));
 
+    uint32 HeaderMagic = Magic;
+    uint8 HeaderVersion = Version;
+    uint32 RawSize = static_cast<uint32>(Raw.Num());
+
+    FMemory::Memcpy(OutCompressed.GetData(), &HeaderMagic, sizeof(uint32));
+    FMemory::Memcpy(
+        OutCompressed.GetData() + sizeof(uint32),
+        &HeaderVersion,
+        sizeof(uint8));
+    FMemory::Memcpy(
+        OutCompressed.GetData() + sizeof(uint32) + sizeof(uint8),
+        &RawSize,
+        sizeof(uint32));
+
+    void* Destination =
+        OutCompressed.GetData() + HeaderBytes;
+
+    int64 ActualCompressedSize = CompressedSize;
     if (!FCompression::CompressMemory(
         NAME_Zlib,
-        OutCompressed.GetData(),
-        CompressedSize,
+        Destination,
+        ActualCompressedSize,
         Raw.GetData(),
         Raw.Num(),
         COMPRESS_Default,
@@ -144,7 +164,7 @@ bool FGenesisMacroSaveSerializer::Serialize(
         return false;
     }
 
-    OutCompressed.SetNum(static_cast<int32>(CompressedSize));
+    OutCompressed.SetNum(HeaderBytes + static_cast<int32>(ActualCompressedSize));
     return true;
 }
 
@@ -152,44 +172,59 @@ bool FGenesisMacroSaveSerializer::Deserialize(
     const TArray<uint8>& Compressed,
     FGenesisMacroSaveEnvelope& OutSnapshot)
 {
-    if (Compressed.Num() == 0)
+    constexpr int32 HeaderBytes = sizeof(uint32) + sizeof(uint8) + sizeof(uint32);
+    if (Compressed.Num() <= HeaderBytes)
         return false;
 
-    int64 RawSize = 0;
-    // The first allocation is bounded and can be enlarged on demand.
-    RawSize = FMath::Max<int64>(Compressed.Num() * 8LL, 4096LL);
+    uint32 HeaderMagic = 0;
+    uint8 HeaderVersion = 0;
+    uint32 RawSize = 0;
 
-    for (int Attempt = 0; Attempt < 4; ++Attempt)
+    FMemory::Memcpy(
+        &HeaderMagic,
+        Compressed.GetData(),
+        sizeof(uint32));
+    FMemory::Memcpy(
+        &HeaderVersion,
+        Compressed.GetData() + sizeof(uint32),
+        sizeof(uint8));
+    FMemory::Memcpy(
+        &RawSize,
+        Compressed.GetData() + sizeof(uint32) + sizeof(uint8),
+        sizeof(uint32));
+
+    if (HeaderMagic != Magic || HeaderVersion != Version || RawSize == 0)
+        return false;
+
+    TArray<uint8> Raw;
+    Raw.SetNumUninitialized(static_cast<int32>(RawSize));
+
+    const void* Source = Compressed.GetData() + HeaderBytes;
+    const int32 SourceSize = Compressed.Num() - HeaderBytes;
+
+    int64 UncompressedSize = RawSize;
+    if (!FCompression::UncompressMemory(
+        NAME_Zlib,
+        Raw.GetData(),
+        UncompressedSize,
+        Source,
+        SourceSize,
+        COMPRESS_Default,
+        0))
     {
-        TArray<uint8> Raw;
-        Raw.SetNumUninitialized(static_cast<int32>(RawSize));
-
-        if (!FCompression::UncompressMemory(
-            NAME_Zlib,
-            Raw.GetData(),
-            RawSize,
-            Compressed.GetData(),
-            Compressed.Num(),
-            COMPRESS_Default,
-            0))
-        {
-            RawSize *= 2;
-            continue;
-        }
-
-        FMemoryReader Reader(Raw, true);
-        FGenesisMacroSaveEnvelope Candidate = OutSnapshot;
-        SerializeSnapshot(Reader, Candidate);
-
-        if (Reader.IsError())
-            return false;
-
-        if (static_cast<uint32>(Candidate.Rules.TargetScore) == 0)
-            return false;
-
-        OutSnapshot = MoveTemp(Candidate);
-        return true;
+        return false;
     }
 
-    return false;
+    FMemoryReader Reader(Raw, true);
+    FGenesisMacroSaveEnvelope Candidate = OutSnapshot;
+    SerializeSnapshot(Reader, Candidate);
+
+    if (Reader.IsError())
+        return false;
+
+    if (Candidate.Rules.TargetScore <= 0)
+        return false;
+
+    OutSnapshot = MoveTemp(Candidate);
+    return true;
 }
