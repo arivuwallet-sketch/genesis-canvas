@@ -29,7 +29,7 @@ async function requestOpenAI(prompt: string): Promise<string> {
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: process.env["OPENAI_MODEL"] ?? "gpt-5",
+      model: process.env["OPENAI_MODEL"] ?? "gpt-5.6-luna",
       instructions: UNITY_LLM_SYSTEM_PROMPT,
       input: buildUnityLlmUserPrompt(prompt),
       text: {
@@ -70,7 +70,7 @@ async function requestAnthropic(prompt: string): Promise<string> {
       "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify({
-      model: process.env["ANTHROPIC_MODEL"] ?? "claude-sonnet-4-5",
+      model: process.env["ANTHROPIC_MODEL"] ?? "claude-sonnet-4-6",
       max_tokens: 4000,
       system: UNITY_LLM_SYSTEM_PROMPT,
       tools: [
