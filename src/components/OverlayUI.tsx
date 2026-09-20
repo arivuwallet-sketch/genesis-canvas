@@ -272,8 +272,9 @@ export function OverlayUI() {
       {/* Bottom prompt bar */}
       <div className="pointer-events-auto absolute inset-x-0 bottom-0 flex justify-center px-4 pb-7">
         <div className="w-full max-w-2xl">
-          <AgentPanel />
+          <AgentTabs />
           <PipelineView />
+          <AgentPanel />
           {dockedMenus.map((m) => (
             <ChatMenuCard key={m.id} menu={m} />
           ))}
@@ -291,13 +292,16 @@ export function OverlayUI() {
             </div>
           )}
           <GenreSelector />
-          <AgentTabs />
           <form
             onSubmit={(e) => {
               e.preventDefault();
               const prompt = chatInput.trim();
               if (!prompt) return;
-              if (activeTab === "master") runMasterPrompt(prompt);
+              if (activeTab === "master") {
+                runMasterPrompt(prompt);
+                setChatInput("");
+                return;
+              }
               submitPrompt();
             }}
             className="glass-panel flex w-full items-center gap-3 rounded-2xl px-4 py-3"
