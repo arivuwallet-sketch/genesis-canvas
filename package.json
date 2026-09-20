@@ -79,7 +79,8 @@
     "vaul": "^1.1.2",
     "vite-tsconfig-paths": "^6.0.2",
     "zod": "^3.25.76",
-    "zustand": "^5.0.15"
+    "zustand": "^5.0.15",
+    "@xyflow/react": "^12.11.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
