@@ -6,9 +6,9 @@ This folder is a drop-in UE5 C++ integration for the existing Genesis React appl
 
 `React chat → /api/llm/ue5-commands → structured JSON → ws://localhost:3002 → AAICommandReceiver → UE5 runtime`
 
-The UE receiver uses Epic's `WebSocketServer` runtime module. UE's API exposes an `IWebSocketServer` that listens on a port and dispatches message handlers on the game thread, so the receiver validates/parses incoming JSON and then executes a bounded number of queued commands per frame. citeturn573378search0turn573378search1
+The UE receiver uses Epic's `WebSocketServer` runtime module. UE's API exposes an `IWebSocketServer` that listens on a port and dispatches message handlers on the game thread, so the receiver validates/parses incoming JSON and then executes a bounded number of queued commands per frame.
 
-This custom port is deliberately separate from the built-in Remote Control WebSocket endpoint. Current UE5 documentation lists Remote Control's default WebSocket port as 30020; it can be changed in Project Settings. citeturn736276search0turn736276search7
+This custom port is deliberately separate from the built-in Remote Control WebSocket endpoint. Current UE5 documentation lists Remote Control's default WebSocket port as 30020; it can be changed in Project Settings.
 
 ## Files
 
@@ -173,27 +173,27 @@ and returns validated JSON:
 }
 ```
 
-The OpenAI implementation uses strict structured output; the current OpenAI API documents `json_schema` structured outputs and lists GPT-5.6 with the alias `gpt-5.6`. citeturn435673search1
+The OpenAI implementation uses strict structured output; the current OpenAI API documents `json_schema` structured outputs and lists GPT-5.6 with the alias `gpt-5.6`.
 
-The Anthropic implementation uses a forced tool schema and validates the tool input before transmission. Claude Sonnet 4.6 is currently listed as an active Anthropic API model. citeturn435673search0
+The Anthropic implementation uses a forced tool schema and validates the tool input before transmission. Claude Sonnet 4.6 is currently listed as an active Anthropic API model.
 
 ## 8. Enable UE plugins/modules
 
 ### WebSockets
 
-Use the engine WebSockets/WebSocketServer modules through the C++ module dependencies above. Epic's current API reference lists both `WebSockets` and `WebSocketServer` as engine modules; `WebSocketServer` provides the server API used here. citeturn402822search10turn573378search1
+Use the engine WebSockets/WebSocketServer modules through the C++ module dependencies above. Epic's current API reference lists both `WebSockets` and `WebSocketServer` as engine modules; `WebSocketServer` provides the server API used here.
 
-You do not need the experimental WebSocket Networking plugin for this receiver. That plugin is a separate networking stack and is documented as experimental. citeturn402822search0
+You do not need the experimental WebSocket Networking plugin for this receiver. That plugin is a separate networking stack and is documented as experimental.
 
 ### Remote Control
 
 Enable **Remote Control API** when you also want the built-in UE Remote Control HTTP/WebSocket system for editor automation or exposed Blueprint/Python functions.
 
-Current UE5 docs describe Remote Control as a web server inside the engine and document its WebSocket endpoint; its default WebSocket port is 30020. citeturn736276search2turn736276search0
+Current UE5 docs describe Remote Control as a web server inside the engine and document its WebSocket endpoint; its default WebSocket port is 30020.
 
 For this custom AI receiver, leave the built-in Remote Control WebSocket on its default port and use **3002** for `AAICommandReceiver`, or deliberately change one of the ports so they do not conflict.
 
-Remote Control is disabled by default in packaged/`-game` workflows and can require the documented `-RCWebControlEnable -RCWebInterfaceEnable` launch flags when you need that feature outside the editor. citeturn736276search2
+Remote Control is disabled by default in packaged/`-game` workflows and can require the documented `-RCWebControlEnable -RCWebInterfaceEnable` launch flags when you need that feature outside the editor.
 
 ## 9. Project settings / security
 
@@ -227,7 +227,7 @@ Do not accept arbitrary reflection calls, console commands, filesystem paths, or
 11. UE queues each command and executes up to the configured budget per frame.
 12. UE sends `ue_command_completed` or `ue_command_error` JSON back to React.
 
-Epic documents that `IWebSocketServer` message handlers run on the game thread; this implementation therefore keeps the handler lightweight and queues actual command work so a large batch is spread across frames. citeturn573378search0
+Epic documents that `IWebSocketServer` message handlers run on the game thread; this implementation therefore keeps the handler lightweight and queues actual command work so a large batch is spread across frames.
 
 ## 11. Blueprint option
 
