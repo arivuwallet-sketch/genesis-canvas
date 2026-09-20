@@ -1,10 +1,12 @@
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import { Ecctrl, type EcctrlHandle } from "ecctrl";
-import { useKeyboardControls, type ReactNode, useRef, useEffect } from "react";
+import { useKeyboardControls } from "@react-three/drei";
+import { useEffect, useRef, type ReactNode } from "react";
 import * as THREE from "three";
 import { playerPosition, playerState } from "../state/playerTransform";
 import { useGameConfigStore } from "../store/useGameConfigStore";
 import { useEditorStore } from "../store/useEditorStore";
+import { gameplayEventBus } from "./GameplayEventBus";
 
 export interface GameplayCharacterControllerProps {
   position?: [number, number, number];
@@ -16,31 +18,34 @@ export interface GameplayCharacterControllerProps {
   slopeMaxAngle?: number;
   airControl?: number;
   cameraDistance?: number;
+  cameraHeight?: number;
+  enabled?: boolean;
 }
 
 const GameplayRig = (props: GameplayCharacterControllerProps) => {
   const body = useRef<EcctrlHandle>(null);
-  const camera = useThreeSafeCamera();
+  const camera = useThree((state) => state.camera);
   const [, getKeys] = useKeyboardControls();
-  const firstPerson = props.firstPerson ?? useEditorStore.getState().cameraMode === "first";
-  const yawRef = useRef(Math.PI);
-  const pitchRef = useRef(-0.2);
+  const isPlaying = useGameConfigStore((state) => state.isPlaying);
+  const setPlaying = useGameConfigStore((state) => state.setPlaying);
+  const firstPerson = props.firstPerson ?? useEditorStore((state) => state.cameraMode === "first");
   const lastGrounded = useRef(false);
-  const setPlaying = useGameConfigStore((s) => s.setPlaying);
 
   useEffect(() => {
     const onPointerLock = () => {
-      if (document.pointerLockElement === null) setPlaying(false);
+      if (document.pointerLockElement === null && isPlaying) {
+        setPlaying(false);
+      }
     };
     document.addEventListener("pointerlockchange", onPointerLock);
     return () => document.removeEventListener("pointerlockchange", onPointerLock);
-  }, [setPlaying]);
+  }, [isPlaying, setPlaying]);
 
   useFrame((_, dt) => {
     const controller = body.current;
-    if (!controller) return;
-    const keys = getKeys() as Record<string, boolean>;
+    if (!controller || props.enabled === false) return;
 
+    const keys = getKeys() as Record<string, boolean>;
     controller.setMovement({
       forward: !!keys.forward,
       backward: !!keys.backward,
@@ -50,58 +55,58 @@ const GameplayRig = (props: GameplayCharacterControllerProps) => {
       run: !!keys.run,
     });
 
-    const position = controller.currPos;
-    const grounded = Math.abs(position.y - Math.round(position.y)) < 0.04;
-    const airFactor = grounded ? 1 : Math.min(1, props.airControl ?? 0.35);
-
-    if (airFactor < 1 && controller.setMovement) {
-      controller.setMovement({
-        forward: !!keys.forward,
-        backward: !!keys.backward,
-        leftward: !!keys.leftward,
-        rightward: !!keys.rightward,
-        jump: false,
-        run: !!keys.run,
+    const grounded = controller.isOnGround;
+    if (grounded !== lastGrounded.current) {
+      gameplayEventBus.emit("onTriggerEntered", {
+        entityId: "player_1",
+        triggerId: grounded ? "grounded" : "airborne",
       });
+      lastGrounded.current = grounded;
     }
 
-    lastGrounded.current = grounded;
+    const position = controller.currPos;
     playerPosition.set(position.x, position.y, position.z);
     playerState.active = true;
 
-    if (camera) {
-      const target = new THREE.Vector3(position.x, position.y + 0.5, position.z);
-      const distance = firstPerson ? 0 : (props.cameraDistance ?? 6);
-      const desired = new THREE.Vector3(
-        position.x + Math.sin(yawRef.current) * distance,
-        position.y + 1.2 - Math.sin(pitchRef.current) * distance,
-        position.z + Math.cos(yawRef.current) * distance,
-      );
-      camera.position.lerp(desired, 1 - Math.exp(-10 * dt));
-      camera.lookAt(target);
+    const target = new THREE.Vector3(
+      position.x,
+      position.y + (props.cameraHeight ?? 0.55),
+      position.z,
+    );
+    const distance = firstPerson ? 0 : props.cameraDistance ?? 6;
+    const desired = new THREE.Vector3(
+      position.x,
+      position.y + (props.cameraHeight ?? 0.55) + 1.05,
+      position.z + distance,
+    );
+
+    if (distance > 0) {
+      camera.position.lerp(desired, 1 - Math.exp(-10 * Math.min(dt, 0.05)));
+    } else {
+      camera.position.lerp(target, 1 - Math.exp(-18 * Math.min(dt, 0.05)));
     }
+    camera.lookAt(target);
+
+    if (controller.movingDirection.lengthSq() > 0.001) playerState.yaw = Math.atan2(controller.movingDirection.x, controller.movingDirection.z);
   });
 
   return (
     <Ecctrl
       ref={body}
       position={props.position ?? [0, 3, 0]}
+      enable={props.enabled !== false}
       maxWalkVel={props.walkSpeed ?? 3}
       maxRunVel={props.runSpeed ?? 6}
       jumpVel={props.jumpVelocity ?? 5}
+      airDragFactor={props.airControl ?? 0.35}
+      slopeMaxAngle={props.slopeMaxAngle ?? Math.PI / 3}
+      groundDetection="shapeCast"
       autoBalance
     >
       {props.children}
     </Ecctrl>
   );
 };
-
-function useThreeSafeCamera() {
-  // Lazy import avoids making the gameplay wrapper own the entire viewport setup.
-  // The concrete camera is acquired from R3F when this component is rendered.
-  const { useThree } = require("@react-three/fiber") as typeof import("@react-three/fiber");
-  return useThree((state) => state.camera);
-}
 
 export function GameplayCharacterController(props: GameplayCharacterControllerProps) {
   return <GameplayRig {...props} />;
