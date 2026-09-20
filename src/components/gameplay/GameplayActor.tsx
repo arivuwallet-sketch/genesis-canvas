@@ -72,6 +72,7 @@ function VehicleGameplay({
   const [doorsOpen, setDoorsOpen] = useState(false);
   const [hasNamedDoors, setHasNamedDoors] = useState(false);
   const lastInteract = useRef(false);
+  const lastRelease = useRef(false);
   const yaw = useRef(0);
   const initialized = useRef(false);
 
@@ -118,7 +119,14 @@ function VehicleGameplay({
       Number(Boolean(keys.rightward)) - Number(Boolean(keys.leftward));
 
     const interactPressed = Boolean(keys.interact) && !lastInteract.current;
+    const releasePressed = Boolean(keys.release) && !lastRelease.current;
     lastInteract.current = Boolean(keys.interact);
+    lastRelease.current = Boolean(keys.release);
+
+    if (releasePressed) {
+      clearActiveActor(object.id);
+      return;
+    }
 
     if (interactPressed && object.gameplay.capabilities.includes("door_open")) {
       setDoorsOpen((value) => !value);
@@ -282,6 +290,7 @@ function HumanoidGameplay({
   const previousAttack = useRef(false);
   const previousJump = useRef(false);
   const previousCrouch = useRef(false);
+  const previousRelease = useRef(false);
   const currentAnimation = useRef("");
 
   useEffect(() => {
@@ -301,6 +310,13 @@ function HumanoidGameplay({
       Boolean(keys.backward) ||
       Boolean(keys.leftward) ||
       Boolean(keys.rightward);
+
+    const releasePressed = Boolean(keys.release) && !previousRelease.current;
+    previousRelease.current = Boolean(keys.release);
+    if (releasePressed) {
+      clearActiveActor(object.id);
+      return;
+    }
 
     const crouchPressed = Boolean(keys.crouch) && !previousCrouch.current;
     previousCrouch.current = Boolean(keys.crouch);
