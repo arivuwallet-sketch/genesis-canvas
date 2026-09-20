@@ -65,7 +65,27 @@ namespace
         Ar << Quest.QuestId;
         Ar << Quest.Title;
         Ar << Quest.RootObjectiveId;
-        Ar << Quest.Objectives;
+
+        int32 ObjectiveCount = Quest.Objectives.Num();
+        Ar << ObjectiveCount;
+        if (Ar.IsSaving())
+        {
+            for (FGenesisQuestObjective& Objective : Quest.Objectives)
+            {
+                SerializeObjective(Ar, Objective);
+            }
+        }
+        else
+        {
+            Quest.Objectives.Reset();
+            for (int32 Index = 0; Index < ObjectiveCount; ++Index)
+            {
+                FGenesisQuestObjective Objective;
+                SerializeObjective(Ar, Objective);
+                Quest.Objectives.Add(MoveTemp(Objective));
+            }
+        }
+
         Ar << Quest.GeneratedLocation;
         Ar << Quest.Faction;
         Ar << Quest.Difficulty;
