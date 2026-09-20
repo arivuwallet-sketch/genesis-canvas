@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Viewport } from "../components/Viewport";
 import { OverlayUI } from "../components/OverlayUI";
+import { SceneGraph } from "../components/ui/SceneGraph";
 
 export const Route = createFileRoute("/")({
   ssr: false,
@@ -29,6 +30,7 @@ function Index() {
   return (
     <main className="fixed inset-0 bg-background">
       <Viewport />
+      <SceneGraph />
       <OverlayUI />
     </main>
   );
