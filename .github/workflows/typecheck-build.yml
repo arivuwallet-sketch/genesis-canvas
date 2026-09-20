@@ -1,4 +1,4 @@
-name: Typecheck and build
+name: Production build
 
 on:
   push:
