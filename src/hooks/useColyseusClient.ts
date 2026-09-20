@@ -284,7 +284,13 @@ export async function connectToRoom(roomId: string, role: "host" | "join" = "joi
   });
 
   try {
-    const url = new URL(MULTIPLAYER_URL);
+    const socketUrl =
+      /^wss?:/i.test(MULTIPLAYER_URL)
+        ? MULTIPLAYER_URL
+        : MULTIPLAYER_URL.replace(/^https?:/i, (scheme) =>
+            scheme.toLowerCase() === "https:" ? "wss:" : "ws:",
+          );
+    const url = new URL(socketUrl);
     url.searchParams.set("roomId", room);
     socket = new WebSocket(url.toString());
 
