@@ -13,6 +13,11 @@ import { DiagnosticsProbe } from "./hud/Diagnostics";
 import { LandscapeGen } from "./LandscapeGen";
 import { useGameConfigStore } from "../store/useGameConfigStore";
 import { useLogicStore } from "../store/useLogicStore";
+import {
+  SplitScreenRenderer,
+  SplitScreenSceneActors,
+  SplitScreenInputBridge,
+} from "./SplitScreenView";
 
 export function Viewport() {
   const showPerf = useEditorStore((s) => s.showPerf);
@@ -22,6 +27,7 @@ export function Viewport() {
   const setRendererLabel = useEditorStore((s) => s.setRendererLabel);
   const isPlaying = useGameConfigStore((s) => s.isPlaying);
   const viewMode = useGameConfigStore((s) => s.viewMode);
+  const multiplayerMode = useGameConfigStore((s) => s.multiplayerMode);
   const logicOpen = useLogicStore((s) => s.logicOpen);
 
   /**
@@ -95,6 +101,9 @@ export function Viewport() {
         <RemotePlayers />
       </Suspense>
 
+      <SplitScreenSceneActors />
+      <SplitScreenInputBridge />
+
       {!isPlaying && !logicOpen ? (
         <>
           <Grid
@@ -117,7 +126,7 @@ export function Viewport() {
       <DiagnosticsProbe />
 
       {/* The pmndrs post stack is WebGL-only; WebGPU renders unprocessed. */}
-      {!webgpuEnabled && !isPlaying ? <Effects /> : null}
+      {!webgpuEnabled && !isPlaying && multiplayerMode !== "split-screen" ? <Effects /> : null}
 
       {!isPlaying && !playerEnabled && viewMode === "scene" ? (
         <SelectionGizmo />
@@ -132,6 +141,8 @@ export function Viewport() {
           target={[0, 1, 0]}
         />
       ) : null}
+
+      {isPlaying && multiplayerMode === "split-screen" ? <SplitScreenRenderer /> : null}
     </Canvas>
   );
 }
