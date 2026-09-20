@@ -13,6 +13,7 @@ import {
   type SpawnedObject,
 } from "../store/useEditorStore";
 import { MODEL_CATALOG, matchCatalog, type CatalogEntry } from "../data/modelCatalog";
+import { useGameConfigStore } from "../store/useGameConfigStore";
 
 const GEOMETRIES: PrimitiveGeometry[] = [
   "box",
@@ -246,6 +247,45 @@ export function applyCommand(input: unknown): CommandResult {
   const action = String(input["action"] ?? input["op"] ?? "").toLowerCase();
 
   switch (action) {
+    case "environment":
+    case "set_environment":
+    case "terrain": {
+      const game = useGameConfigStore.getState();
+      const terrain = isRecord(input["terrain"]) ? input["terrain"] : input;
+      const biomeColor = color(terrain["biomeColor"] ?? terrain["color"]);
+      game.setTerrain({
+        roughness: num(terrain["roughness"], game.terrain.roughness, 0.1, 2),
+        mountainHeight: num(
+          terrain["mountainHeight"] ?? terrain["height"],
+          game.terrain.mountainHeight,
+          0,
+          15,
+        ),
+        ...(biomeColor ? { biomeColor } : {}),
+      });
+      if ("timeOfDay" in input) {
+        game.setTimeOfDay(num(input["timeOfDay"], game.timeOfDay, 0, 24));
+      }
+      return { ok: true, message: "Updated the procedural environment." };
+    }
+
+    case "play_animation":
+    case "animate": {
+      const entityId = String(input["entityId"] ?? input["targetId"] ?? input["id"] ?? "");
+      const animationName = String(input["animationName"] ?? input["animation"] ?? "");
+      if (!entityId || !animationName) {
+        return { ok: false, message: "Animation request is missing an entity or animation name." };
+      }
+      const ok = store.playAnimation(
+        entityId,
+        animationName,
+        num(input["blendTime"], 0.2, 0, 5),
+      );
+      return ok
+        ? { ok: true, message: `Playing ${animationName} on ${entityId.slice(0, 6)}.` }
+        : { ok: false, message: `Animation "${animationName}" was not found on that entity.` };
+    }
+
     case "spawn":
     case "create":
     case "add": {
