@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { Play, Square, SunMedium } from "lucide-react";
 import { useEditorStore, type GraphicsQuality } from "../store/useEditorStore";
 import { useNetworkSync } from "../hooks/useNetworkSync";
 import { useAiCommand } from "../hooks/useAiCommand";
@@ -143,6 +144,12 @@ export function OverlayUI() {
   const setSelectedId = useEditorStore((s) => s.setSelectedId);
 
   const activeTab = useGameConfigStore((s) => s.activeTab);
+  const viewMode = useGameConfigStore((s) => s.viewMode);
+  const setViewMode = useGameConfigStore((s) => s.setViewMode);
+  const isPlaying = useGameConfigStore((s) => s.isPlaying);
+  const setPlaying = useGameConfigStore((s) => s.setPlaying);
+  const timeOfDay = useGameConfigStore((s) => s.timeOfDay);
+  const setTimeOfDay = useGameConfigStore((s) => s.setTimeOfDay);
   const runMasterPrompt = useGameConfigStore((s) => s.runMasterPrompt);
   const pipelineRunning = useGameConfigStore((s) => s.pipelineRunning);
   const menus = useGameConfigStore((s) => s.menus);
@@ -180,6 +187,11 @@ export function OverlayUI() {
       const target = e.target as HTMLElement | null;
       if (target && /input|textarea/i.test(target.tagName)) return;
       const key = e.key.toLowerCase();
+      if (e.key === "Escape" && isPlaying) {
+        setPlaying(false);
+        return;
+      }
+      if (isPlaying) return;
       if (key === "p") togglePerf();
       if (key === "c") toggleCameraMode();
       if (key === "t") setTransformMode("translate");
@@ -189,7 +201,7 @@ export function OverlayUI() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [togglePerf, toggleCameraMode, setTransformMode, setSelectedId]);
+  }, [isPlaying, setPlaying, togglePerf, toggleCameraMode, setTransformMode, setSelectedId]);
 
   const pill =
     "glass-panel rounded-full px-4 py-2 text-[11px] uppercase tracking-[0.18em] transition-colors";
@@ -206,43 +218,94 @@ export function OverlayUI() {
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-2">
-          {characters.length > 0 && (
+          {isPlaying ? (
             <button
-              onClick={() => setCharacterPanelOpen(!characterPanelOpen)}
-              className={`${pill} ${characterPanelOpen ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
+              onClick={() => setPlaying(false)}
+              className="flex items-center gap-2 rounded-full border border-destructive/40 bg-destructive/10 px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.22em] text-destructive shadow-lg"
             >
-              Characters · {characters.length}
+              <Square className="h-3.5 w-3.5 fill-current" />
+              Exit Play · Esc
             </button>
+          ) : (
+            <>
+              <div className="glass-panel flex items-center gap-1 rounded-full p-1">
+                <button
+                  onClick={() => setViewMode("scene")}
+                  className={\${pill} \${viewMode === "scene" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-primary"}}
+                >
+                  Scene View
+                </button>
+                <button
+                  onClick={() => setViewMode("logic")}
+                  className={\${pill} \${viewMode === "logic" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-primary"}}
+                >
+                  Logic View
+                </button>
+              </div>
+              <label className="glass-panel flex items-center gap-2 rounded-full px-3 py-2">
+                <SunMedium className="h-3.5 w-3.5 text-primary" />
+                <span className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+                  {Math.floor(timeOfDay).toString().padStart(2, "0")}:{Math.round((timeOfDay % 1) * 60).toString().padStart(2, "0")}
+                </span>
+                <input
+                  type="range"
+                  min={0}
+                  max={24}
+                  step={0.25}
+                  value={timeOfDay}
+                  onChange={(event) => setTimeOfDay(Number(event.target.value))}
+                  className="w-24 accent-primary"
+                  aria-label="Time of day"
+                />
+              </label>
+              {characters.length > 0 && (
+                <button
+                  onClick={() => setCharacterPanelOpen(!characterPanelOpen)}
+                  className={\${pill} \${characterPanelOpen ? "text-primary" : "text-muted-foreground hover:text-primary"}}
+                >
+                  Characters · {characters.length}
+                </button>
+              )}
+              <button
+                onClick={() => setPlayerEnabled(!playerEnabled)}
+                className={\${pill} \${playerEnabled ? "text-primary" : "text-muted-foreground hover:text-primary"}}
+              >
+                {playerEnabled ? "Player" : "Orbit"}
+              </button>
+              <button
+                onClick={toggleCameraMode}
+                className={\${pill} text-muted-foreground hover:text-primary}
+              >
+                {cameraMode === "first" ? "1st person" : "3rd person"} · C
+              </button>
+              <QualitySelect />
+              <button
+                onClick={() => setPlaying(true)}
+                className="flex items-center gap-2 rounded-full border border-primary/55 bg-primary/20 px-7 py-3 text-[13px] font-bold uppercase tracking-[0.22em] text-primary shadow-[0_0_24px_color-mix(in_oklab,var(--primary)_24%,transparent)] transition hover:bg-primary/30"
+              >
+                <Play className="h-4 w-4 fill-current" />
+                PLAY
+              </button>
+              <button
+                onClick={togglePerf}
+                className={\${pill} text-muted-foreground hover:text-primary}
+              >
+                Perf {showPerf ? "on" : "off"} · P
+              </button>
+              <button
+                onClick={() => setWebgpuEnabled(!webgpuEnabled)}
+                className={\${pill} \${webgpuEnabled ? "text-primary" : "text-muted-foreground hover:text-primary"}}
+                title={rendererLabel}
+              >
+                {webgpuEnabled ? rendererLabel : "WebGL2"}
+              </button>
+            </>
           )}
-          <button
-            onClick={() => setPlayerEnabled(!playerEnabled)}
-            className={`${pill} ${playerEnabled ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
-          >
-            {playerEnabled ? "Play mode" : "Orbit mode"}
-          </button>
-          <button
-            onClick={toggleCameraMode}
-            className={`${pill} text-muted-foreground hover:text-primary`}
-          >
-            {cameraMode === "first" ? "1st person" : "3rd person"} · C
-          </button>
-          <QualitySelect />
-          <button
-            onClick={togglePerf}
-            className={`${pill} text-muted-foreground hover:text-primary`}
-          >
-            Perf {showPerf ? "on" : "off"} · P
-          </button>
-          <button
-            onClick={() => setWebgpuEnabled(!webgpuEnabled)}
-            className={`${pill} ${webgpuEnabled ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
-            title={rendererLabel}
-          >
-            {webgpuEnabled ? rendererLabel : "WebGL2"}
-          </button>
         </div>
       </header>
 
+      {!isPlaying && (
+        <>
       {!playerEnabled && selectedId && (
         <div className="pointer-events-auto absolute left-1/2 top-20 flex -translate-x-1/2 gap-2">
           {(["translate", "rotate", "scale"] as const).map((mode, i) => (
@@ -327,6 +390,8 @@ export function OverlayUI() {
           </form>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 }
