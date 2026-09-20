@@ -101,6 +101,10 @@ export function Viewport() {
         <RemotePlayers />
       </Suspense>
 
+      <ParticleManager />
+      <SoundManager />
+      <TheatreStage />
+
       <SplitScreenSceneActors />
       <SplitScreenInputBridge />
 
