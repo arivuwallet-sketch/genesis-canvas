@@ -176,9 +176,10 @@ function SpawnedEntity({ object }: { object: SpawnedObject }) {
       canSleep
     >
       <group
+        visible={object.visible}
         onPointerDown={(e) => {
           e.stopPropagation();
-          setSelectedId(object.id);
+          if (!object.locked && object.visible) setSelectedId(object.id);
         }}
       >
         {object.kind === "model" && object.modelUrl ? (
