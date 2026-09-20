@@ -152,6 +152,11 @@ export const GENRE_MATRIX: GenreGroup[] = [
   },
 ];
 
-export type MultiplayerMode = "Singleplayer" | "Co-Op" | "PvP";
+export type MultiplayerMode = "singleplayer" | "split-screen" | "online" | "online-coop";
 
-export const MULTIPLAYER_MODES: MultiplayerMode[] = ["Singleplayer", "Co-Op", "PvP"];
+export const MULTIPLAYER_MODES: Array<{ value: MultiplayerMode; label: string }> = [
+  { value: "singleplayer", label: "Singleplayer" },
+  { value: "split-screen", label: "Local Split-Screen" },
+  { value: "online", label: "Online Multiplayer" },
+  { value: "online-coop", label: "Online Co-Op" },
+];
