@@ -35,7 +35,8 @@ export function MacroDirectorRuntime() {
   }, []);
 
   useFrame((_, deltaSeconds) => {
-    if (!useGameConfigStore.getState().isPlaying) return;
+    const isPlaying = useGameConfigStore.getState().isPlaying;
+    if (!isPlaying) return;
 
     const delta = Math.min(0.25, Math.max(0, deltaSeconds));
     elapsed.current += delta;
@@ -62,6 +63,7 @@ export function MacroDirectorRuntime() {
     if (loopAccumulator.current >= 0.25) {
       const loopDelta = loopAccumulator.current;
       loopAccumulator.current = 0;
+      macro.tickDirector(loopDelta);
       if (macro.world.timeRemainingSeconds > 0) {
         macro.tickGameLoop(loopDelta);
       }
