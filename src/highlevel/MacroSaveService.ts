@@ -6,7 +6,6 @@ import {
   serializeMacroSave,
 } from "./MacroSaveSerializer";
 import type { MacroSaveEnvelope } from "./MacroTypes";
-import { getDirectorRuntimeState } from "./MacroSaveRuntime";
 
 export async function createMacroSave(playerId: string): Promise<Uint8Array> {
   const macro = useMacroGameStore.getState();
@@ -16,7 +15,7 @@ export async function createMacroSave(playerId: string): Promise<Uint8Array> {
     playerId,
     world: macro.world,
     director: macro.director,
-    directorRuntime: getDirectorRuntimeState(),
+    directorRuntime: macro.getDirectorRuntimeState(),
     quests: macro.quests,
     completedQuestObjectives: macro.completedQuestObjectives,
     meta: macro.meta,
