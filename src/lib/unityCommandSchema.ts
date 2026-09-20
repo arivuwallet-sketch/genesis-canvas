@@ -173,8 +173,8 @@ export function parseUnityCommandBatch(value: unknown): UnityCommandBatch {
     const color = rawParameters.color ?? null;
     const weather = rawParameters.weather ?? null;
     const material = rawParameters.material ?? null;
-    const enabled = rawParameters.enabled ?? null;
-    const intensity = rawParameters.intensity ?? null;
+    const enabled = rawParameters.enabled ?? false;
+    const intensity = rawParameters.intensity ?? 0;
 
     if (position !== null && !isVec3(position)) {
       throw new Error(`Command ${index + 1} has an invalid position.`);
@@ -219,8 +219,8 @@ export function parseUnityCommandBatch(value: unknown): UnityCommandBatch {
         color: color as string | null,
         weather: weather as UnityCommandParameters["weather"],
         material: material as string | null,
-        enabled: enabled as boolean | null,
-        intensity: intensity as number | null,
+        enabled: enabled as boolean,
+        intensity: intensity as number,
       },
     };
   });
