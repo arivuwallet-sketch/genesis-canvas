@@ -17,6 +17,7 @@ import { carveGeometry, makePrimitiveGeometry } from "../utils/csg";
 import { useEditorStore, type SpawnedObject } from "../store/useEditorStore";
 import { useVfxStore, type Decal as VfxDecal } from "../store/useVfxStore";
 import { GameplayActor } from "./gameplay/GameplayActor";
+import { useGameplayControlStore } from "../store/useGameplayControlStore";
 
 /* ------------------------------------------------------------------ */
 /* Error boundary -> stylized fallback volume                          */
@@ -325,6 +326,7 @@ function SpawnedEntity({ object }: { object: SpawnedObject }) {
   const body = useRef<RapierRigidBody>(null);
   const selectedId = useEditorStore((s) => s.selectedId);
   const setSelectedId = useEditorStore((s) => s.setSelectedId);
+  const setActiveActor = useGameplayControlStore((s) => s.setActiveActor);
   const selected = selectedId === object.id;
 
   // Gizmo / AI transforms live in the store; push them into the physics body.
@@ -365,7 +367,12 @@ function SpawnedEntity({ object }: { object: SpawnedObject }) {
         visible={object.visible}
         onPointerDown={(e) => {
           e.stopPropagation();
-          if (!object.locked && object.visible) setSelectedId(object.id);
+          if (!object.locked && object.visible) {
+            setSelectedId(object.id);
+            if (object.gameplay.controllable) {
+              setActiveActor(object.id, object.gameplay.archetype);
+            }
+          }
         }}
       >
         {object.kind === "model" && object.modelUrl ? (
