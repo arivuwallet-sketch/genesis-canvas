@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Viewport } from "../components/Viewport";
 import { OverlayUI } from "../components/OverlayUI";
 import { SceneGraph } from "../components/ui/SceneGraph";
+import { LogicEditor } from "../components/logic/LogicEditor";
 
 export const Route = createFileRoute("/")({
   ssr: false,
@@ -32,6 +33,7 @@ function Index() {
       <Viewport />
       <SceneGraph />
       <OverlayUI />
+      <LogicEditor />
     </main>
   );
 }
