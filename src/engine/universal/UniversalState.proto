@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+package genesis.engine.v1;
+
+message Vec3 {
+  float x = 1;
+  float y = 2;
+  float z = 3;
+}
+
+message Quat {
+  float x = 1;
+  float y = 2;
+  float z = 3;
+  float w = 4;
+}
+
+message Transform {
+  Vec3 position = 1;
+  Vec3 rotation_euler = 2;
+  Vec3 scale = 3;
+}
+
+message Rigidbody {
+  bool dynamic = 1;
+  float mass_kg = 2;
+  float friction = 3;
+  float restitution = 4;
+  float gravity_scale = 5;
+}
+
+message PbrMaterial {
+  Vec3 base_color = 1;
+  float metallic = 2;
+  float roughness = 3;
+  float emissive = 4;
+}
+
+message AudioSpatialNode {
+  string clip = 1;
+  float gain = 2;
+  float min_distance = 3;
+  float max_distance = 4;
+  bool looping = 5;
+}
+
+message BehaviorState {
+  string tree = 1;
+  string state = 2;
+  repeated string tags = 3;
+}
+
+message EntityState {
+  string entity_id = 1;
+  string name = 2;
+  uint32 category = 3;
+  Transform transform = 4;
+  Rigidbody rigidbody = 5;
+  PbrMaterial material = 6;
+  AudioSpatialNode audio = 7;
+  BehaviorState behavior = 8;
+  uint64 revision = 9;
+}
+
+message StateDelta {
+  uint64 revision = 1;
+  repeated EntityState upsert = 2;
+  repeated string removed_entity_ids = 3;
+  uint64 server_time_us = 4;
+}
+
+message CommandEnvelope {
+  uint64 correlation_id = 1;
+  string command_name = 2;
+  bytes payload = 3;
+  uint64 timestamp_us = 4;
+}
+
+message TransportFrame {
+  uint32 protocol_version = 1;
+  uint32 frame_type = 2;
+  oneof body {
+    StateDelta state_delta = 3;
+    CommandEnvelope command = 4;
+  }
+}
