@@ -13,7 +13,7 @@ import {
   Trash2,
   Video,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useEditorStore } from "../../store/useEditorStore";
 import { useGameConfigStore } from "../../store/useGameConfigStore";
 import {
@@ -185,8 +185,14 @@ function SceneRow({
 }
 
 export function SceneGraph() {
-  const viewMode = useGameConfigStore((s) => s.viewMode);
-  const isPlaying = useGameConfigStore((s) => s.isPlaying);
+  const visible = useGameConfigStore((s) => s.viewMode === "scene" && !s.isPlaying);
+
+  if (!visible) return null;
+
+  return <SceneGraphPanel />;
+}
+
+function SceneGraphPanel() {
   const nodes = useSceneStore((s) => s.nodes);
   const selectedNodeId = useSceneStore((s) => s.selectedNodeId);
   const setSelectedNodeId = useSceneStore((s) => s.setSelectedNodeId);
@@ -324,7 +330,7 @@ export function SceneGraph() {
     }
   };
 
-  const renderTree = (parentId: string | null, depth = 0): React.ReactNode => {
+  const renderTree = (parentId: string | null, depth = 0): ReactNode => {
     const children = childMap.get(parentId) ?? [];
     return children.flatMap((node) => {
       const hasChildren = (childMap.get(node.id) ?? []).length > 0;
@@ -348,8 +354,6 @@ export function SceneGraph() {
       return expandedIds.includes(node.id) || Boolean(search.trim()) ? [row, ...renderTree(node.id, depth + 1)] : [row];
     });
   };
-
-  if (viewMode !== "scene" || isPlaying) return null;
 
   return (
     <aside className="pointer-events-auto absolute left-4 top-20 bottom-28 z-20 flex w-64 flex-col overflow-hidden rounded-2xl border border-primary/10 bg-card/65 shadow-2xl backdrop-blur-xl">
