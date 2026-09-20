@@ -34,7 +34,7 @@ function AudioListenerBridge({ onReady }: { onReady: (listener: THREE.AudioListe
       window.removeEventListener("pointerdown", resume);
       window.removeEventListener("keydown", resume);
       camera.remove(listener);
-      listener.disconnect();
+      listener.gain.disconnect();
       onReady(null);
     };
   }, [camera, onReady]);
