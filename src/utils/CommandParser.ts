@@ -216,6 +216,12 @@ function toObjectPatch(cmd: Record<string, unknown>): Partial<SpawnedObject> {
 
   if ("metalness" in cmd) patch.metalness = num(cmd["metalness"], 0.4, 0, 1);
   if ("roughness" in cmd) patch.roughness = num(cmd["roughness"], 0.4, 0, 1);
+  if (!("metalness" in cmd) && gameplay.archetype === "vehicle") patch.metalness = 0.78;
+  if (!("roughness" in cmd) && gameplay.archetype === "vehicle") patch.roughness = 0.22;
+  if (!("metalness" in cmd) && gameplay.archetype === "humanoid") patch.metalness = 0.08;
+  if (!("roughness" in cmd) && gameplay.archetype === "humanoid") patch.roughness = 0.58;
+  if (!("metalness" in cmd) && gameplay.archetype === "building") patch.metalness = 0.18;
+  if (!("roughness" in cmd) && gameplay.archetype === "building") patch.roughness = 0.62;
   if ("emissive" in cmd || "glow" in cmd)
     patch.emissive = num(cmd["emissive"] ?? cmd["glow"], 0, 0, 4);
 
