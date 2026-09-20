@@ -208,6 +208,8 @@ export function SceneGraph() {
         id: object.id,
         name: object.name,
         position: object.position,
+        visible: object.visible,
+        locked: object.locked,
       })),
     );
   }, [spawnedObjects]);
@@ -340,7 +342,7 @@ export function SceneGraph() {
           />
         </div>
       );
-      return expandedIds.includes(node.id) || depth === 0 ? [row, ...renderTree(node.id, depth + 1)] : [row];
+      return expandedIds.includes(node.id) || Boolean(search.trim()) ? [row, ...renderTree(node.id, depth + 1)] : [row];
     });
   };
 
