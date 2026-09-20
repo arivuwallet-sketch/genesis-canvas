@@ -1,3 +1,5 @@
+import type { SpawnIntent } from "../highlevel/MacroTypes";
+
 export type GameplayEvents = {
   onPlayerHealthChange: { playerId: string; health: number; maxHealth: number; delta: number };
   onItemPickedUp: { playerId: string; itemId: string; quantity: number };
@@ -7,6 +9,7 @@ export type GameplayEvents = {
   onWaveSpawned: { enemyType: string; count: number; spawnPoint: string };
   onAbilityGranted: { entityId: string; ability: string };
   onGameplayCommand: { command: string; payload: unknown };
+  onDirectorSpawnIntent: SpawnIntent;
 };
 
 type Listener<T> = (payload: T) => void;
