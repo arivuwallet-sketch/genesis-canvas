@@ -147,7 +147,7 @@ function ControllerRig() {
     const pos = body.currPos;
     camTarget.set(pos.x, pos.y + 0.45, pos.z);
 
-    // Publish for DoF focus + throttled network emit (15 Hz inside sendTransform).
+    // Publish for local camera focus and split-screen camera tracking.
     playerPosition.set(pos.x, pos.y, pos.z);
     playerState.yaw = yaw;
     playerState.active = true;
