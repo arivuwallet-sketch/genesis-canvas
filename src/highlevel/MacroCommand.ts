@@ -100,7 +100,7 @@ export function rulesForGeneratedLoop(config: {
 
   return {
     timeLimitMinutes: genre.includes("extraction") ? 20 : 30,
-    targetScore: genre.includes("shooter") ? 1000 : 500,
+    targetScore: win.includes("extract") ? 0 : genre.includes("shooter") ? 1000 : 500,
     extractionRequired: genre.includes("extraction") || win.includes("extract"),
     lossOnDeath: true,
     artifactRequired: win.includes("artifact"),
