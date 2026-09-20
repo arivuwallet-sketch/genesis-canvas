@@ -31,3 +31,29 @@ export function playRegisteredAnimation(
   action.reset().fadeIn(Math.max(0, blendTime)).play();
   return true;
 }
+
+
+export function playFirstRegisteredAnimation(
+  entityId: string,
+  animationNames: string[],
+  blendTime = 0.18,
+) {
+  const actions = actionsByEntity.get(entityId);
+  if (!actions) return false;
+
+  for (const name of animationNames) {
+    const action =
+      actions[name] ??
+      Object.entries(actions).find(
+        ([registeredName]) =>
+          registeredName.toLowerCase() === name.toLowerCase(),
+      )?.[1];
+
+    if (action) {
+      action.reset().fadeIn(Math.max(0, blendTime)).play();
+      return true;
+    }
+  }
+
+  return false;
+}
