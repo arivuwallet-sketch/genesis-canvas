@@ -376,20 +376,25 @@ function SpawnedEntity({ object }: { object: SpawnedObject }) {
         }}
       >
         {object.kind === "model" && object.modelUrl ? (
-          <ModelErrorBoundary
-            fallback={<FallbackVolume scale={object.scale} label="Procedural stand-in" />}
-          >
-            <Suspense fallback={<FallbackVolume scale={object.scale} />}>
-              <GameplayActor object={object} bodyRef={body}>
+          <GameplayActor object={object} bodyRef={body}>
+            <ModelErrorBoundary
+              fallback={
+                <FallbackVolume
+                  scale={object.scale}
+                  label="Procedural stand-in — gameplay retained"
+                />
+              }
+            >
+              <Suspense fallback={<FallbackVolume scale={object.scale} />}>
                 <GLTFModel
                   url={object.modelUrl}
                   scale={object.scale}
                   entityId={object.id}
                   archetype={object.gameplay.archetype}
                 />
-              </GameplayActor>
-            </Suspense>
-          </ModelErrorBoundary>
+              </Suspense>
+            </ModelErrorBoundary>
+          </GameplayActor>
         ) : (
           <GameplayActor object={object} bodyRef={body}>
             <PrimitiveMesh object={object} selected={selected} />
