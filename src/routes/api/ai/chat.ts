@@ -1,19 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { catalogSummary } from "../../../data/modelCatalog";
 
-const SYSTEM_PROMPT =
-  "You are an omnipotent 3D game engine assistant. When a user requests an object or logic, respond ONLY with a strict JSON object detailing the action, model URL/type, position, and physics properties.";
+const SYSTEM_PROMPT = "You are an omnipotent 3D game engine assistant. Use the hosted asset library whenever the request matches it. Never build a real library object out of primitive boxes/cylinders when a matching model exists. Unknown objects may use primitives, but do not pretend they are real models. For grouped requests such as a street, return several sensible spawn actions using matching library assets.";
 
 const SCHEMA_HINT = `
 Reply with ONE JSON object (or an array of them) and nothing else. No prose, no markdown fences.
+For library objects, set type:"model" and use the exact modelUrl from the catalogue below.
+For primitive-only requests, set type:"primitive" and geometry explicitly.
+For grouped requests, prefer several model actions or a count when the same asset repeats. Keep repeated objects near ground level and spread them across x/z rather than stacking them vertically.
 Shape:
 {
   "action": "spawn" | "update" | "remove" | "clear",
   "type": "primitive" | "model",
   "geometry": "box" | "sphere" | "cylinder" | "cone" | "torus" | "capsule",
-  "modelUrl": "/models/robot.glb",           // ONLY this URL exists; otherwise use a primitive
-  "name": "Red Box",
-  "targetId": "<id>",                        // for update/remove; omit to target the newest entity
-  "position": [x, y, z],                     // y is up; spawn above ground, e.g. 5
+  "modelUrl": "/models/sports-car.glb",
+  "name": "Sports Car",
+  "targetId": "<id>",
+  "position": [x, y, z],
   "rotation": [x, y, z],
   "scale": [x, y, z],
   "color": "#ff0000",
@@ -21,6 +24,8 @@ Shape:
   "count": 1..12,
   "physics": { "type": "dynamic" | "fixed", "mass": 1, "restitution": 0.2, "friction": 1, "gravityScale": 1 }
 }
+Hosted asset catalogue:
+${catalogSummary()}
 Never return code or scripts. Only JSON.`;
 
 export const Route = createFileRoute("/api/ai/chat")({
