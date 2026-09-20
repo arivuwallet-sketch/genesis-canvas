@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { playRegisteredAnimation } from "../lib/animationRegistry";
 import type { GameplayActorSpec } from "../gameplay/GameplayActorTypes";
+import { useGameplayControlStore } from "./useGameplayControlStore";
 
 export type CameraMode = "first" | "third";
 export type GraphicsQuality = "low" | "medium" | "ultra";
@@ -193,12 +194,17 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     }));
     return true;
   },
-  removeObject: (id) =>
+  removeObject: (id) => {
+    useGameplayControlStore.getState().clearActiveActor(id);
     set((s) => ({
       spawnedObjects: s.spawnedObjects.filter((o) => o.id !== id),
       selectedId: s.selectedId === id ? null : s.selectedId,
-    })),
-  clearObjects: () => set({ spawnedObjects: [], selectedId: null }),
+    }));
+  },
+  clearObjects: () => {
+    useGameplayControlStore.getState().clearActiveActor();
+    set({ spawnedObjects: [], selectedId: null });
+  },
   carveObject: (id, carve) => {
     const exists = get().spawnedObjects.some((o) => o.id === id);
     if (!exists) return false;
