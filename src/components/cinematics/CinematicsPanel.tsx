@@ -145,9 +145,18 @@ export function CinematicsPanel() {
     setCursor(0);
   };
 
+  const activeSubtitle = subtitleAt(cutscene, cursor);
+
   return (
     <>
       <CinematicsStudioGate active={open} />
+      {playing && activeSubtitle && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-44 z-50 flex justify-center px-6">
+          <div className="max-w-3xl rounded-lg border border-white/15 bg-black/75 px-5 py-2.5 text-center text-sm font-medium tracking-wide text-white shadow-2xl backdrop-blur-md">
+            {activeSubtitle}
+          </div>
+        </div>
+      )}
       <section className="pointer-events-auto fixed inset-x-0 bottom-0 z-40 border-t border-primary/15 bg-card/90 px-4 pb-4 pt-3 shadow-[0_-20px_60px_rgba(0,0,0,0.45)] backdrop-blur-2xl">
         <div className="mx-auto max-w-6xl">
           <div className="mb-3 flex items-center justify-between gap-3">
