@@ -95,7 +95,10 @@ export function calculateDirectorSnapshot(
 
 export function chooseSpawnIntent(
   snapshot: DirectorSnapshot,
+  config: DirectorConfig = DEFAULT_DIRECTOR_CONFIG,
 ): SpawnIntent | null {
+  if (snapshot.actionCooldownSeconds > 0) return null;
+
   if (snapshot.stressScore >= config.criticalStress) {
     return {
       kind: "SpawnSafeRoom",
@@ -105,10 +108,7 @@ export function chooseSpawnIntent(
     };
   }
 
-  if (
-    snapshot.phase === "Relief" &&
-    snapshot.stressScore <= config.hordeThreshold
-  ) {
+  if (snapshot.stressScore <= config.hordeThreshold) {
     return {
       kind: "SpawnHorde",
       spawnPool: "director_high_threat_horde",
@@ -119,8 +119,7 @@ export function chooseSpawnIntent(
 
   if (
     snapshot.phase === "Relief" &&
-    snapshot.stressScore > DEFAULT_DIRECTOR_CONFIG.hordeThreshold &&
-    snapshot.stressScore < snapshot.stressScore
+    snapshot.stressScore < config.reliefThreshold
   ) {
     return {
       kind: "SpawnSupplies",
