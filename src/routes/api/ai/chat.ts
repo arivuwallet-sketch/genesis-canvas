@@ -10,7 +10,7 @@ For primitive-only requests, set type:"primitive" and geometry explicitly.
 For grouped requests, prefer several model actions or a count when the same asset repeats. Keep repeated objects near ground level and spread them across x/z rather than stacking them vertically.
 Shape:
 {
-  "action": "spawn" | "update" | "remove" | "clear",
+  "action": "spawn" | "update" | "remove" | "clear" | "set_environment" | "play_animation",
   "type": "primitive" | "model",
   "geometry": "box" | "sphere" | "cylinder" | "cone" | "torus" | "capsule",
   "modelUrl": "/models/sports-car.glb",
@@ -22,7 +22,12 @@ Shape:
   "color": "#ff0000",
   "metalness": 0..1, "roughness": 0..1, "emissive": 0..4,
   "count": 1..12,
-  "physics": { "type": "dynamic" | "fixed", "mass": 1, "restitution": 0.2, "friction": 1, "gravityScale": 1 }
+  "physics": { "type": "dynamic" | "fixed", "mass": 1, "restitution": 0.2, "friction": 1, "gravityScale": 1 },
+  "timeOfDay": 14,
+  "terrain": { "roughness": 0.85, "mountainHeight": 3.2, "biomeColor": "#66745a" },
+  "entityId": "<entity id>",
+  "animationName": "Idle",
+  "blendTime": 0.2
 }
 Hosted asset catalogue:
 ${catalogSummary()}
