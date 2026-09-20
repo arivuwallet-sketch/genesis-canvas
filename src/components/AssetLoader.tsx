@@ -106,6 +106,7 @@ function PrimitiveMesh({
         emissive={object.emissive > 0 ? object.color : "#000000"}
         emissiveIntensity={object.emissive}
       />
+      <PrimitiveDecals objectId={object.id} />
       {selected && <Edges scale={1.02} color="#b6f36a" />}
     </mesh>
   );
