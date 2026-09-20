@@ -4,6 +4,7 @@ import { Ecctrl, type EcctrlHandle } from "ecctrl";
 import { useEffect, useRef, type ReactNode } from "react";
 import * as THREE from "three";
 import { useEditorStore } from "../../store/useEditorStore";
+import { useGameConfigStore } from "../../store/useGameConfigStore";
 import { playerPosition, playerState } from "../../state/playerTransform";
 import { sendTransform } from "../../network/socketClient";
 
@@ -96,9 +97,29 @@ function ControllerRig() {
   const characterRef = useRef<EcctrlHandle>(null);
   const [, getKeys] = useKeyboardControls();
   const camera = useThree((s) => s.camera);
+  const gl = useThree((s) => s.gl);
+  const isPlaying = useGameConfigStore((s) => s.isPlaying);
+  const setPlaying = useGameConfigStore((s) => s.setPlaying);
   const cameraMode = useEditorStore((s) => s.cameraMode);
   const firstPerson = cameraMode === "first";
   const look = useMouseLook(true);
+
+  useEffect(() => {
+    if (!isPlaying) return;
+    const canvas = gl.domElement;
+    const requestLock = () => {
+      if (document.pointerLockElement !== canvas) {
+        canvas.requestPointerLock?.().catch(() => undefined);
+      }
+    };
+    const onPointerLockChange = () => {
+      if (document.pointerLockElement !== canvas) setPlaying(false);
+    };
+
+    requestLock();
+    document.addEventListener("pointerlockchange", onPointerLockChange);
+    return () => document.removeEventListener("pointerlockchange", onPointerLockChange);
+  }, [gl, isPlaying, setPlaying]);
 
   useFrame((_, rawDelta) => {
     const delta = Math.min(rawDelta, 0.05);
