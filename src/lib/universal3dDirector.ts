@@ -499,3 +499,20 @@ export const UNIVERSAL_3D_DIRECTOR_JSON_SCHEMA = {
     "environment_impact",
   ],
 } as const;
+
+
+export function buildUniversal3DDirectorUserPrompt(prompt: string): string {
+  return [
+    "Convert the following natural-language request into one deterministic Universal 3D Entity & World Director JSON object.",
+    "Return only valid JSON matching the supplied schema.",
+    "",
+    "USER REQUEST:",
+    prompt.trim().slice(0, 12000),
+  ].join("\n");
+}
+
+export function parseUniversal3DDirectorOutput(
+  value: unknown,
+): Universal3DEntityPayload {
+  return validateUniversal3DEntity(value);
+}
