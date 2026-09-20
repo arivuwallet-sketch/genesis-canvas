@@ -185,6 +185,8 @@ function SceneRow({
 }
 
 export function SceneGraph() {
+  const viewMode = useGameConfigStore((s) => s.viewMode);
+  const isPlaying = useGameConfigStore((s) => s.isPlaying);
   if (viewMode !== "scene" || isPlaying) return null;
   const nodes = useSceneStore((s) => s.nodes);
   const selectedNodeId = useSceneStore((s) => s.selectedNodeId);
