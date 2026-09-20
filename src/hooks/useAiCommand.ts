@@ -6,6 +6,7 @@ import { runVisualQaAndApplyCorrection } from "../utils/visualQa";
 import { useGraphicsStore } from "../store/useGraphicsStore";
 import { useGameConfigStore } from "../store/useGameConfigStore";
 import { matchCatalog } from "../data/modelCatalog";
+import { inferGameplaySpec } from "../gameplay/GameplayActorTypes";
 import { applyAiResponse, applyCommand, extractAssistantReply } from "../utils/CommandParser";
 
 /** Prompts that can be completed deterministically without the remote AI pipeline. */
@@ -67,10 +68,11 @@ function localShortcut(prompt: string): string | null {
               ? "fixed"
               : "dynamic",
         },
+        gameplay: inferGameplaySpec(entry.category, p),
       });
 
       return result.ok
-        ? `Built ${count > 1 ? `${count} ` : ""}${entry.name} from the real local 3D asset library.`
+        ? `Built ${count > 1 ? `${count} ` : ""}${entry.name} as a functional ${entry.category} actor from the real local 3D asset library.`
         : result.message;
     }
   }
