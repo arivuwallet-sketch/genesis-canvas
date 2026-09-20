@@ -45,8 +45,14 @@ namespace Genesis.ExtremeCore.Editor
 
             _scroll = EditorGUILayout.BeginScrollView(_scroll);
 
-            var type = _selectedObject.GetType();
-            foreach (var component in type.GetComponents())
+            if (_selectedObject is GameObject gameObject)
+            {
+                foreach (var component in gameObject.GetComponents<Component>())
+                {
+                    if (component != null) DrawComponent(component);
+                }
+            }
+            else if (_selectedObject is Component component)
             {
                 DrawComponent(component);
             }
