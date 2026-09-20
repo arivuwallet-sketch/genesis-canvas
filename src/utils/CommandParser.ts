@@ -18,6 +18,7 @@ import { useVfxStore, type DecalType, type ParticlePreset } from "../store/useVf
 import { requestNetworkedBoss } from "../hooks/useColyseusClient";
 import { spawnEcsBatch, updateEcsEntity, removeEcsEntity, clearEcs, ecsEntityFromRenderObject } from "../ecs/EcsCommandBus";
 import { executeGameplayCommands } from "../gameplay/GameplayCommandExecutor";
+import { executeMacroCommand } from "../highlevel/MacroCommandExecutor";
 
 const GEOMETRIES: PrimitiveGeometry[] = [
   "box",
@@ -323,14 +324,18 @@ export function applyCommand(input: unknown): CommandResult {
   const batch = input["actions"] ?? input["commands"] ?? input["objects"];
   if (Array.isArray(batch) && !("action" in input)) return applyCommand(batch);
 
-  const gameplayCommand = input["command"];
+  const command = input["command"];
   if (
-    gameplayCommand === "GrantAbility" ||
-    gameplayCommand === "TriggerDialogue" ||
-    gameplayCommand === "SpawnWave" ||
-    gameplayCommand === "ModifyAttribute"
+    command === "GrantAbility" ||
+    command === "TriggerDialogue" ||
+    command === "SpawnWave" ||
+    command === "ModifyAttribute"
   ) {
     return executeGameplayCommands(input);
+  }
+
+  if (command === "GenerateGameLoop" || command === "SetWorldState") {
+    return executeMacroCommand(input);
   }
 
   const store = useEditorStore.getState();
