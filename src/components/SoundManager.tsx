@@ -51,6 +51,7 @@ function SpatialSource({
   listener: THREE.AudioListener;
   zones: AudioZone[];
 }) {
+  const camera = useThree((state) => state.camera);
   const audioRef = useRef<THREE.PositionalAudio | null>(null);
   const activeZoneRef = useRef<string | null>(null);
 
@@ -101,16 +102,16 @@ function SpatialSource({
     if (!audio) return;
 
     let active: AudioZone | undefined;
-    const worldPosition = new THREE.Vector3();
-    audio.getWorldPosition(worldPosition);
+    const listenerPosition = new THREE.Vector3();
+    camera.getWorldPosition(listenerPosition);
     for (const zone of zones) {
       const inside =
-        worldPosition.x >= zone.min[0] &&
-        worldPosition.x <= zone.max[0] &&
-        worldPosition.y >= zone.min[1] &&
-        worldPosition.y <= zone.max[1] &&
-        worldPosition.z >= zone.min[2] &&
-        worldPosition.z <= zone.max[2];
+        listenerPosition.x >= zone.min[0] &&
+        listenerPosition.x <= zone.max[0] &&
+        listenerPosition.y >= zone.min[1] &&
+        listenerPosition.y <= zone.max[1] &&
+        listenerPosition.z >= zone.min[2] &&
+        listenerPosition.z <= zone.max[2];
       if (inside) {
         active = zone;
         break;
