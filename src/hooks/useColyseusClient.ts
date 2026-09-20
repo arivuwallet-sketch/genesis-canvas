@@ -265,14 +265,24 @@ export function getMultiplayerClientState(): MultiplayerClientState {
 }
 
 export async function connectToRoom(roomId: string, role: "host" | "join" = "join") {
-  const room = roomId.trim();
-  if (!room) return;
+  const input = roomId.trim();
+  if (!input) return;
 
   pendingRole = role;
   clearTransport();
   useSceneStore.getState().clearNetworkEntities();
 
-  if (!MULTIPLAYER_URL || typeof WebSocket === "undefined") {
+  const directEndpoint =
+    /^(?:wss?|https?):\/\//i.test(input) ||
+    /^(?:localhost|127(?:\.\d{1,3}){3}|\d{1,3}(?:\.\d{1,3}){3})(?::\d{2,6})?$/i.test(input);
+
+  const room = directEndpoint ? "default" : input;
+  if (!MULTIPLAYER_URL && !directEndpoint) {
+    startSimulation(room);
+    return;
+  }
+
+  if (typeof WebSocket === "undefined") {
     startSimulation(room);
     return;
   }
@@ -284,12 +294,12 @@ export async function connectToRoom(roomId: string, role: "host" | "join" = "joi
   });
 
   try {
-    const socketUrl =
-      /^wss?:/i.test(MULTIPLAYER_URL)
-        ? MULTIPLAYER_URL
-        : MULTIPLAYER_URL.replace(/^https?:/i, (scheme) =>
-            scheme.toLowerCase() === "https:" ? "wss:" : "ws:",
-          );
+    const configuredEndpoint = directEndpoint ? input : MULTIPLAYER_URL!;
+    const socketUrl = /^wss?:\/\//i.test(configuredEndpoint)
+      ? configuredEndpoint
+      : /^(?:http|https):\/\//i.test(configuredEndpoint)
+        ? configuredEndpoint.replace(/^http:/i, "ws:").replace(/^https:/i, "wss:")
+        : "ws://" + configuredEndpoint;
     const url = new URL(socketUrl);
     url.searchParams.set("roomId", room);
     socket = new WebSocket(url.toString());
