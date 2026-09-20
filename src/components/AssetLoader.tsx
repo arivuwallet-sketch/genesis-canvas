@@ -7,7 +7,9 @@ import {
   useEffect,
   useMemo,
   useRef,
+  useState,
   type ReactNode,
+  type RefObject,
 } from "react";
 import * as THREE from "three";
 import { DecalGeometry } from "three/examples/jsm/geometries/DecalGeometry.js";
@@ -160,7 +162,7 @@ function ProjectedDecal({
 }: {
   decal: VfxDecal;
   texture: THREE.Texture | undefined;
-  targetMesh: React.RefObject<THREE.Mesh | null>;
+  targetMesh: RefObject<THREE.Mesh | null>;
 }) {
   const [geometry, setGeometry] = useState<THREE.BufferGeometry | null>(null);
 
@@ -217,7 +219,7 @@ function PrimitiveDecals({
   targetMesh,
 }: {
   objectId: string;
-  targetMesh: React.RefObject<THREE.Mesh | null>;
+  targetMesh: RefObject<THREE.Mesh | null>;
 }) {
   const decals = useVfxStore((state) => state.decals.filter((item) => item.targetId === objectId));
   const textures = useMemo(() => {
