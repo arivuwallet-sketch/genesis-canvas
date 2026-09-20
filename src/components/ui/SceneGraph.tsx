@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useEditorStore } from "../../store/useEditorStore";
+import { useGameConfigStore } from "../../store/useGameConfigStore";
 import {
   DIRECTIONAL_LIGHT_ID,
   GROUND_ID,
@@ -184,6 +185,7 @@ function SceneRow({
 }
 
 export function SceneGraph() {
+  if (viewMode !== "scene" || isPlaying) return null;
   const nodes = useSceneStore((s) => s.nodes);
   const selectedNodeId = useSceneStore((s) => s.selectedNodeId);
   const setSelectedNodeId = useSceneStore((s) => s.setSelectedNodeId);
