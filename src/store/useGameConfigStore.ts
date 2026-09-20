@@ -7,6 +7,26 @@ import type { LogicEdge, LogicNode } from "./useLogicStore";
 
 export type EditorViewMode = "scene" | "logic";
 
+export interface CutsceneCameraKey {
+  time: number;
+  position: [number, number, number];
+  lookAt: [number, number, number];
+}
+
+export interface CutsceneSubtitle {
+  time: number;
+  duration: number;
+  text: string;
+}
+
+export interface CutsceneData {
+  title: string;
+  duration: number;
+  cameraPath: CutsceneCameraKey[];
+  lookAtTargets: Array<{ time: number; target: [number, number, number] }>;
+  subtitles: CutsceneSubtitle[];
+}
+
 export type AgentTab =
   | "master"
   | "story"
@@ -77,6 +97,10 @@ interface GameConfigState {
   setTerrain: (patch: Partial<GameConfigState["terrain"]>) => void;
   viewMode: EditorViewMode;
   setViewMode: (mode: EditorViewMode) => void;
+  cinematicsOpen: boolean;
+  cutsceneData: CutsceneData | null;
+  setCinematicsOpen: (open: boolean) => void;
+  setCutsceneData: (data: CutsceneData | null) => void;
 
   /* agents */
   activeTab: AgentTab;
@@ -338,10 +362,14 @@ export const useGameConfigStore = create<GameConfigState>((set, get) => ({
       },
     })),
   viewMode: "scene",
+  cinematicsOpen: false,
+  cutsceneData: null,
   setViewMode: (viewMode) => {
     set({ viewMode });
     useLogicStore.getState().setLogicOpen(viewMode === "logic");
   },
+  setCinematicsOpen: (cinematicsOpen) => set({ cinematicsOpen }),
+  setCutsceneData: (cutsceneData) => set({ cutsceneData }),
 
   setPrimaryGenre: (genre) => {
     const group = GENRE_MATRIX.find((g) => g.genre === genre);
