@@ -76,8 +76,8 @@ export const UNITY_COMMAND_JSON_SCHEMA = {
                 enum: ["clear", "rain", "storm", "snow", "fog", null],
               },
               material: { type: ["string", "null"] },
-              enabled: { type: ["boolean", "null"] },
-              intensity: { type: ["number", "null"] },
+              enabled: { type: "boolean" },
+              intensity: { type: "number" },
             },
             required: [
               "position",
@@ -200,11 +200,11 @@ export function parseUnityCommandBatch(value: unknown): UnityCommandBatch {
       throw new Error(`Command ${index + 1} has an invalid material.`);
     }
 
-    if (enabled !== null && typeof enabled !== "boolean") {
+    if (typeof enabled !== "boolean") {
       throw new Error(`Command ${index + 1} has an invalid enabled flag.`);
     }
 
-    if (intensity !== null && (typeof intensity !== "number" || !Number.isFinite(intensity))) {
+    if (typeof intensity !== "number" || !Number.isFinite(intensity)) {
       throw new Error(`Command ${index + 1} has an invalid intensity.`);
     }
 
@@ -226,4 +226,16 @@ export function parseUnityCommandBatch(value: unknown): UnityCommandBatch {
   });
 
   return { commands };
+}
+
+
+export function buildUnityLlmUserPrompt(userPrompt: string): string {
+  return [
+    "Translate the following natural-language game-builder request into a single strict JSON command batch.",
+    "Use only the allowed actions and fields from the system contract.",
+    "Do not add explanations or markdown.",
+    "",
+    "USER REQUEST:",
+    userPrompt.trim().slice(0, 8000),
+  ].join("\n");
 }
