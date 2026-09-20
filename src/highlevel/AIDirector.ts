@@ -89,14 +89,14 @@ export function calculateDirectorSnapshot(
     phase,
     phaseProgress,
     intensity,
-    actionCooldownSeconds: Math.max(0, config.minPhaseSeconds - phaseAgeSeconds),
+    actionCooldownSeconds: Math.max(0, this.triggerCooldownSeconds),
   };
 }
 
 export function chooseSpawnIntent(
   snapshot: DirectorSnapshot,
 ): SpawnIntent | null {
-  if (snapshot.stressScore >= DEFAULT_DIRECTOR_CONFIG.criticalStress) {
+  if (snapshot.stressScore >= config.criticalStress) {
     return {
       kind: "SpawnSafeRoom",
       spawnPool: "director_relief_safe_room",
@@ -107,7 +107,7 @@ export function chooseSpawnIntent(
 
   if (
     snapshot.phase === "Relief" &&
-    snapshot.stressScore <= DEFAULT_DIRECTOR_CONFIG.hordeThreshold
+    snapshot.stressScore <= config.hordeThreshold
   ) {
     return {
       kind: "SpawnHorde",
@@ -147,9 +147,16 @@ export class AIDirectorEngine {
 
   constructor(private readonly config: DirectorConfig = DEFAULT_DIRECTOR_CONFIG) {}
 
+  triggerCooldownSeconds = 0;
+
+  markAction(cooldownSeconds = 10) {
+    this.triggerCooldownSeconds = Math.max(0, cooldownSeconds);
+  }
+
   update(deltaSeconds: number, telemetry: PlayerStressTelemetry): DirectorSnapshot {
     const delta = Math.max(0, Math.min(deltaSeconds, 0.25));
     this.elapsedSeconds += delta;
+    this.triggerCooldownSeconds = Math.max(0, this.triggerCooldownSeconds - delta);
 
     const previous = this.phase;
     this.snapshot = calculateDirectorSnapshot(
