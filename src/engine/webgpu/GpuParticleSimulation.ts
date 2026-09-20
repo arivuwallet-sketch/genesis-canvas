@@ -86,6 +86,7 @@ export class GpuParticleSimulation {
   private readonly damping: number;
   private positions: Float32Array;
   private velocities: Float32Array;
+  private interleaved: Float32Array;
   private device: GpuDeviceLike | null = null;
   private particleBuffer: GpuBufferLike | null = null;
   private parameterBuffer: GpuBufferLike | null = null;
@@ -100,12 +101,14 @@ export class GpuParticleSimulation {
     this.damping = Math.min(1, Math.max(0, options.damping ?? 0.995));
     this.positions = new Float32Array(this.count * 4);
     this.velocities = new Float32Array(this.count * 4);
+    this.interleaved = new Float32Array(this.count * 8);
 
     for (let i = 0; i < this.count; i += 1) {
       this.positions[i * 4 + 1] = 1 + (i % 200) * 0.01;
       this.positions[i * 4 + 3] = 1;
       this.velocities[i * 4 + 3] = 1;
     }
+    this.packInterleaved();
   }
 
   get particleCount() {
@@ -123,7 +126,7 @@ export class GpuParticleSimulation {
       });
 
       this.particleBuffer = device.createBuffer({
-        size: this.positions.byteLength + this.velocities.byteLength,
+        size: this.interleaved.byteLength,
         usage: GPU_BUFFER_STORAGE | 0x0008,
       });
 
@@ -141,16 +144,7 @@ export class GpuParticleSimulation {
         ],
       });
 
-      device.queue.writeBuffer(
-        this.particleBuffer,
-        0,
-        this.positions,
-      );
-      device.queue.writeBuffer(
-        this.particleBuffer,
-        this.positions.byteLength,
-        this.velocities,
-      );
+      device.queue.writeBuffer(this.particleBuffer, 0, this.interleaved);
 
       this.gpuReady = true;
       return true;
@@ -205,6 +199,15 @@ export class GpuParticleSimulation {
     this.pipeline = null;
     this.bindGroup = null;
     this.gpuReady = false;
+  }
+
+  private packInterleaved() {
+    for (let i = 0; i < this.count; i += 1) {
+      const source = i * 4;
+      const target = i * 8;
+      this.interleaved.set(this.positions.subarray(source, source + 4), target);
+      this.interleaved.set(this.velocities.subarray(source, source + 4), target + 4);
+    }
   }
 
   private stepCpu(dt: number) {
