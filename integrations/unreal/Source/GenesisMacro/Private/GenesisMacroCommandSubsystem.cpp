@@ -111,9 +111,11 @@ bool UGenesisMacroCommandSubsystem::ExecuteGenerateGameLoop(
             : 30.0f;
 
     Rules.TargetScore =
-        GenreLower.Contains(TEXT("shooter"))
-            ? 1000
-            : 500;
+        WinLower.Contains(TEXT("extract"))
+            ? 0
+            : GenreLower.Contains(TEXT("shooter"))
+                ? 1000
+                : 500;
 
     Rules.bExtractionRequired =
         GenreLower.Contains(TEXT("extraction")) ||
