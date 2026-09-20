@@ -9,6 +9,7 @@ import {
   type NetworkStatus,
 } from "../network/socketClient";
 import { useEditorStore } from "../store/useEditorStore";
+import { useGameConfigStore } from "../store/useGameConfigStore";
 
 /**
  * All socket lifecycle + listeners live here. Mounted exactly once, outside
@@ -16,9 +17,17 @@ import { useEditorStore } from "../store/useEditorStore";
  */
 export function useNetworkSync() {
   const setNetwork = useEditorStore((s) => s.setNetwork);
+  const multiplayerMode = useGameConfigStore((s) => s.multiplayerMode);
   const [roster, setRoster] = useState<string[]>([]);
 
   useEffect(() => {
+    if (multiplayerMode !== "online" && multiplayerMode !== "online-coop") {
+      disconnect();
+      setRoster([]);
+      setNetwork({ status: "offline", ping: 0, peers: 0 });
+      return;
+    }
+
     let cancelled = false;
 
     const syncRoster = () => {
@@ -50,7 +59,7 @@ export function useNetworkSync() {
       unsub();
       disconnect();
     };
-  }, [setNetwork]);
+  }, [multiplayerMode, setNetwork]);
 
   return roster;
 }
