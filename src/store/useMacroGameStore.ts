@@ -7,6 +7,7 @@ import {
 } from "../highlevel/AIDirector";
 import { generateDynamicQuest } from "../highlevel/QuestOrchestrator";
 import { DEFAULT_MACRO_RULES, evaluateMacroGameRules, applyExtractionReward, type MacroGameRules, type MacroGameSnapshot } from "../highlevel/MacroGameLoop";
+import { rulesForGeneratedLoop, type GameLoopConfig } from "../highlevel/MacroCommand";
 import type {
   DialogueTree,
   DirectorSnapshot,
@@ -29,6 +30,7 @@ interface MacroGameState {
   lastSpawnIntent: SpawnIntent | null;
   directorRunning: boolean;
   rules: MacroGameRules;
+  gameLoopConfig: GameLoopConfig;
   loop: MacroGameSnapshot;
   score: number;
   playerAlive: boolean;
@@ -40,6 +42,7 @@ interface MacroGameState {
   setArtifactSecured: (secured: boolean) => void;
   setExtracted: (extracted: boolean) => void;
   completeExtraction: (reward: { currency: number; xp: number; loot: Record<string, number> }) => void;
+  generateGameLoop: (config: GameLoopConfig) => void;
   updateTelemetry: (patch: Partial<PlayerStressTelemetry>) => void;
   tickDirector: (deltaSeconds: number) => SpawnIntent | null;
   setWorldState: (patch: Partial<WorldState>) => void;
@@ -97,6 +100,12 @@ export const useMacroGameStore = create<MacroGameState>((set, get) => ({
   lastSpawnIntent: null,
   directorRunning: false,
   rules: DEFAULT_MACRO_RULES,
+  gameLoopConfig: {
+    genre: "generic_action",
+    pacing: "adaptive",
+    winCondition: "complete_objectives",
+    directorRules: [],
+  },
   loop: {
     status: "Active",
     score: 0,
