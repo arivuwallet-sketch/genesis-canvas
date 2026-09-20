@@ -12,7 +12,7 @@ import {
   type PrimitiveGeometry,
   type SpawnedObject,
 } from "../store/useEditorStore";
-import { MODEL_CATALOG, matchCatalog, type CatalogEntry } from "./assetManager";
+import { MODEL_CATALOG, matchCatalog, type CatalogEntry } from "../data/modelCatalog";
 
 const GEOMETRIES: PrimitiveGeometry[] = [
   "box",
@@ -252,23 +252,34 @@ export function applyCommand(input: unknown): CommandResult {
       const count = clamp(num(input["count"], 1, 1, 12), 1, 12);
       const patch = toObjectPatch(input);
       let last = "";
+      const entry = resolveModel(input["modelUrl"] ?? input["url"] ?? input["model"] ?? input["asset"] ?? input["object"] ?? input["name"]);
+      const base = patch.position ?? [0, 1, 0];
       for (let i = 0; i < count; i++) {
-        const jitter: [number, number, number] = patch.position
-          ? [
-              patch.position[0] + (i ? (Math.random() - 0.5) * 2 : 0),
-              patch.position[1] + i * 1.5,
-              patch.position[2] + (i ? (Math.random() - 0.5) * 2 : 0),
-            ]
-          : [(Math.random() - 0.5) * 6, 5 + i * 1.5, (Math.random() - 0.5) * 6];
+        // Repeated library assets are laid out across the ground plane instead of
+        // being stacked vertically, which makes requests such as "add some trees"
+        // immediately read as a scene rather than a pile of primitives.
+        const cols = Math.max(1, Math.ceil(Math.sqrt(count)));
+        const row = Math.floor(i / cols);
+        const col = i % cols;
+        const spacing = entry?.category === "nature" ? 4 : 3;
+        const jitter = (Math.random() - 0.5) * 0.8;
+        const position: [number, number, number] = [
+          base[0] + (col - (cols - 1) / 2) * spacing + jitter,
+          base[1],
+          base[2] + (row - (Math.ceil(count / cols) - 1) / 2) * spacing + jitter,
+        ];
         last = store.spawnObject({
           ...patch,
-          position: jitter,
-          name: patch.name ?? (patch.kind === "model" ? "Model" : "Primitive"),
+          position,
+          name: patch.name ?? entry?.name ?? (patch.kind === "model" ? "Model" : "Primitive"),
         });
       }
+      const description = patch.kind === "model"
+        ? `real ${patch.name ?? entry?.name ?? "library model"}`
+        : `primitive ${patch.geometry ?? "box"}`;
       return {
         ok: true,
-        message: `Spawned ${count} ${patch.name ?? patch.geometry ?? "object"}${count > 1 ? "s" : ""} (${last.slice(0, 6)}).`,
+        message: `Spawned ${count} ${description}${count > 1 ? "s" : ""} (${last.slice(0, 6)}).`,
       };
     }
 
