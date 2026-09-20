@@ -109,11 +109,11 @@ function ControllerRig() {
   const setPlaying = useGameConfigStore((s) => s.setPlaying);
   const cameraMode = useEditorStore((s) => s.cameraMode);
   const firstPerson = cameraMode === "first";
-  const look = useMouseLook(true);
+  const look = useMouseLook(isPlaying && !activeActorId);
   const inputSendAccumulator = useRef(0);
 
   useEffect(() => {
-    if (!isPlaying) return;
+    if (!isPlaying || activeActorId) return;
     const canvas = gl.domElement;
     const requestLock = () => {
       if (document.pointerLockElement !== canvas) {
