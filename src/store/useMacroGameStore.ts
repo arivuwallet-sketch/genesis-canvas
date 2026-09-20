@@ -42,6 +42,7 @@ interface MacroGameState {
   setArtifactSecured: (secured: boolean) => void;
   setExtracted: (extracted: boolean) => void;
   completeExtraction: (reward: { currency: number; xp: number; loot: Record<string, number> }) => void;
+  restoreMacroSnapshot: (snapshot: import("../highlevel/MacroTypes").MacroSaveEnvelope) => void;
   generateGameLoop: (config: GameLoopConfig) => void;
   updateTelemetry: (patch: Partial<PlayerStressTelemetry>) => void;
   tickDirector: (deltaSeconds: number) => SpawnIntent | null;
