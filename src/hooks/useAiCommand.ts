@@ -1,5 +1,6 @@
 import { useCallback, useRef } from "react";
 import { useEditorStore } from "../store/useEditorStore";
+import { startAgentActivitySimulation } from "../store/useAgentActivityStore";
 import { useGraphicsStore } from "../store/useGraphicsStore";
 import { matchCatalog } from "../data/modelCatalog";
 import { applyAiResponse, applyCommand, extractAssistantReply } from "../utils/CommandParser";
@@ -74,6 +75,7 @@ export function useAiCommand() {
 
     store.setChatInput("");
     store.pushLog(prompt, "user");
+    startAgentActivitySimulation(prompt);
 
     const shortcut = localShortcut(prompt);
     if (shortcut) {
