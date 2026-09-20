@@ -106,6 +106,13 @@ function VehicleGameplay({
     }
 
     const rotation = body.rotation();
+    if (!initialized.current) {
+      yaw.current = Math.atan2(
+        2 * (rotation.w * rotation.y + rotation.x * rotation.z),
+        1 - 2 * (rotation.y * rotation.y + rotation.z * rotation.z),
+      );
+      initialized.current = true;
+    }
     const q = new THREE.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
     const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(q).normalize();
     const right = new THREE.Vector3(1, 0, 0).applyQuaternion(q).normalize();
@@ -311,7 +318,7 @@ function HumanoidGameplay({
 
     const target = forward.multiplyScalar(speed);
     const nextX = THREE.MathUtils.damp(velocity.x, target.x, 12, dt);
-    const nextZ = THREE.MathUtils.damp(velocity.z, -target.z, 12, dt);
+    const nextZ = THREE.MathUtils.damp(velocity.z, target.z, 12, dt);
 
     if (jumpPressed && Math.abs(velocity.y) < 1.2) {
       body.setLinvel({ x: nextX, y: 5.6, z: nextZ }, true);
