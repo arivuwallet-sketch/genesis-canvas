@@ -222,7 +222,7 @@ function toObjectPatch(cmd: Record<string, unknown>): Partial<SpawnedObject> {
   const phys = physics(cmd["physics"] ?? cmd);
   if (gameplay.archetype === "vehicle") {
     patch.physics = {
-      type: phys.type ?? "dynamic",
+      type: "dynamic",
       mass: phys.mass ?? 850,
       restitution: phys.restitution ?? 0.08,
       friction: phys.friction ?? 1.15,
@@ -230,7 +230,7 @@ function toObjectPatch(cmd: Record<string, unknown>): Partial<SpawnedObject> {
     };
   } else if (gameplay.archetype === "humanoid") {
     patch.physics = {
-      type: phys.type ?? "dynamic",
+      type: "dynamic",
       mass: phys.mass ?? 80,
       restitution: phys.restitution ?? 0,
       friction: phys.friction ?? 1,
