@@ -42,12 +42,14 @@ namespace Genesis.MidLevel
         }
 
         private static void Bind(
-            InputActionMap map,
-            string actionName,
-            Action<InputAction.CallbackContext> callback)
-        {
-            map?.FindAction(actionName, false)?.performed += callback;
-        }
+        InputActionMap map,
+        string actionName,
+        Action<InputAction.CallbackContext> callback)
+    {
+        if (map == null) return;
+        InputAction action = map.FindAction(actionName, false);
+        if (action != null) action.performed += callback;
+    }
 
         private void OnDestroy()
         {
@@ -58,12 +60,14 @@ namespace Genesis.MidLevel
         }
 
         private static void Unbind(
-            InputActionMap map,
-            string actionName,
-            Action<InputAction.CallbackContext> callback)
-        {
-            map?.FindAction(actionName, false)?.performed -= callback;
-        }
+        InputActionMap map,
+        string actionName,
+        Action<InputAction.CallbackContext> callback)
+    {
+        if (map == null) return;
+        InputAction action = map.FindAction(actionName, false);
+        if (action != null) action.performed -= callback;
+    }
 
         private void Update()
         {
