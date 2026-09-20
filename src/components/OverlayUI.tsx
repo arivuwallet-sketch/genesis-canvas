@@ -150,6 +150,12 @@ export function OverlayUI() {
   const setPlaying = useGameConfigStore((s) => s.setPlaying);
   const timeOfDay = useGameConfigStore((s) => s.timeOfDay);
   const setTimeOfDay = useGameConfigStore((s) => s.setTimeOfDay);
+
+  const enterPlayMode = () => {
+    const canvas = document.querySelector("canvas");
+    setPlaying(true);
+    canvas?.requestPointerLock?.().catch(() => undefined);
+  };
   const runMasterPrompt = useGameConfigStore((s) => s.runMasterPrompt);
   const pipelineRunning = useGameConfigStore((s) => s.pipelineRunning);
   const menus = useGameConfigStore((s) => s.menus);
@@ -231,13 +237,13 @@ export function OverlayUI() {
               <div className="glass-panel flex items-center gap-1 rounded-full p-1">
                 <button
                   onClick={() => setViewMode("scene")}
-                  className={\${pill} \${viewMode === "scene" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-primary"}}
+                  className={`${pill} ${viewMode === "scene" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-primary"}}
                 >
                   Scene View
                 </button>
                 <button
                   onClick={() => setViewMode("logic")}
-                  className={\${pill} \${viewMode === "logic" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-primary"}}
+                  className={`${pill} ${viewMode === "logic" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-primary"}}
                 >
                   Logic View
                 </button>
@@ -261,26 +267,26 @@ export function OverlayUI() {
               {characters.length > 0 && (
                 <button
                   onClick={() => setCharacterPanelOpen(!characterPanelOpen)}
-                  className={\${pill} \${characterPanelOpen ? "text-primary" : "text-muted-foreground hover:text-primary"}}
+                  className={`${pill} ${characterPanelOpen ? "text-primary" : "text-muted-foreground hover:text-primary"}}
                 >
                   Characters · {characters.length}
                 </button>
               )}
               <button
                 onClick={() => setPlayerEnabled(!playerEnabled)}
-                className={\${pill} \${playerEnabled ? "text-primary" : "text-muted-foreground hover:text-primary"}}
+                className={`${pill} ${playerEnabled ? "text-primary" : "text-muted-foreground hover:text-primary"}}
               >
                 {playerEnabled ? "Player" : "Orbit"}
               </button>
               <button
                 onClick={toggleCameraMode}
-                className={\${pill} text-muted-foreground hover:text-primary}
+                className={`${pill} text-muted-foreground hover:text-primary}
               >
                 {cameraMode === "first" ? "1st person" : "3rd person"} · C
               </button>
               <QualitySelect />
               <button
-                onClick={() => setPlaying(true)}
+                onClick={enterPlayMode}
                 className="flex items-center gap-2 rounded-full border border-primary/55 bg-primary/20 px-7 py-3 text-[13px] font-bold uppercase tracking-[0.22em] text-primary shadow-[0_0_24px_color-mix(in_oklab,var(--primary)_24%,transparent)] transition hover:bg-primary/30"
               >
                 <Play className="h-4 w-4 fill-current" />
@@ -288,13 +294,13 @@ export function OverlayUI() {
               </button>
               <button
                 onClick={togglePerf}
-                className={\${pill} text-muted-foreground hover:text-primary}
+                className={`${pill} text-muted-foreground hover:text-primary}
               >
                 Perf {showPerf ? "on" : "off"} · P
               </button>
               <button
                 onClick={() => setWebgpuEnabled(!webgpuEnabled)}
-                className={\${pill} \${webgpuEnabled ? "text-primary" : "text-muted-foreground hover:text-primary"}}
+                className={`${pill} ${webgpuEnabled ? "text-primary" : "text-muted-foreground hover:text-primary"}}
                 title={rendererLabel}
               >
                 {webgpuEnabled ? rendererLabel : "WebGL2"}
