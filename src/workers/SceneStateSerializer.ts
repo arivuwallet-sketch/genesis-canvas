@@ -38,9 +38,9 @@ const sceneFallbackEntities = (): EcsEntityRecord[] => {
     .filter((node) => node.visible && node.type === "mesh")
     .map((node) => ({
 
-    id: node.id, name: node.name, category: "prop",
-    transform: { position: node.position, rotation: [0, 0, 0], scale: [1, 1, 1] },
-    bounds: { size: [2, 2, 2] },
+    id: node.id, name: node.name, category: "prop" as const,
+    transform: { position: node.position, rotation: [0, 0, 0] as [number, number, number], scale: [1, 1, 1] as [number, number, number] },
+    bounds: { size: [2, 2, 2] as [number, number, number] },
     physics: { bodyType: "fixed", massKg: 0, friction: 1, restitution: 0, gravityScale: 0 },
   }));
 
@@ -101,8 +101,8 @@ export class SceneStateSerializer {
     for (const entity of [...fallback, ...ecs]) byId.set(entity.id, entity);
     const entities = [...byId.values()];
     const current = new Map<string, string>();
-    const added: string[][] = [];
-    const updated: string[][] = [];
+    const added: CompactEntity[] = [];
+    const updated: CompactEntity[] = [];
 
     for (const entity of entities) {
       const compact = compactEntity(entity);
