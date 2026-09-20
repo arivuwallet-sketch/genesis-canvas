@@ -29,7 +29,7 @@ enum class EGenesisSpawnIntentKind : uint8
 };
 
 USTRUCT(BlueprintType)
-struct GENESISM MACRO_API FGenesisStressTelemetry
+struct GENESISMACRO_API FGenesisStressTelemetry
 {
     GENERATED_BODY()
 
@@ -59,7 +59,7 @@ struct GENESISM MACRO_API FGenesisStressTelemetry
 };
 
 USTRUCT(BlueprintType)
-struct GENESISM MACRO_API FGenesisDirectorSnapshot
+struct GENESISMACRO_API FGenesisDirectorSnapshot
 {
     GENERATED_BODY()
 
@@ -80,7 +80,7 @@ struct GENESISM MACRO_API FGenesisDirectorSnapshot
 };
 
 USTRUCT(BlueprintType)
-struct GENESISM MACRO_API FGenesisSpawnIntent
+struct GENESISMACRO_API FGenesisSpawnIntent
 {
     GENERATED_BODY()
 
@@ -98,7 +98,7 @@ struct GENESISM MACRO_API FGenesisSpawnIntent
 };
 
 USTRUCT(BlueprintType)
-struct GENESISM MACRO_API FGenesisMacroWorldState
+struct GENESISMACRO_API FGenesisMacroWorldState
 {
     GENERATED_BODY()
 
@@ -122,7 +122,7 @@ struct GENESISM MACRO_API FGenesisMacroWorldState
 };
 
 USTRUCT(BlueprintType)
-struct GENESISM MACRO_API FGenesisMacroRules
+struct GENESISMACRO_API FGenesisMacroRules
 {
     GENERATED_BODY()
 
@@ -143,7 +143,7 @@ struct GENESISM MACRO_API FGenesisMacroRules
 };
 
 USTRUCT(BlueprintType)
-struct GENESISM MACRO_API FGenesisMetaProgression
+struct GENESISMACRO_API FGenesisMetaProgression
 {
     GENERATED_BODY()
 
@@ -167,7 +167,7 @@ struct GENESISM MACRO_API FGenesisMetaProgression
 };
 
 USTRUCT(BlueprintType)
-struct GENESISM MACRO_API FGenesisQuestObjective
+struct GENESISMACRO_API FGenesisQuestObjective
 {
     GENERATED_BODY()
 
@@ -197,7 +197,7 @@ struct GENESISM MACRO_API FGenesisQuestObjective
 };
 
 USTRUCT(BlueprintType)
-struct GENESISM MACRO_API FGenesisQuestGraph
+struct GENESISMACRO_API FGenesisQuestGraph
 {
     GENERATED_BODY()
 
