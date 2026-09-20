@@ -11,6 +11,9 @@ import { Effects } from "./Effects";
 import { SelectionGizmo } from "./SelectionGizmo";
 import { RemotePlayers } from "./network/RemotePlayers";
 import { DiagnosticsProbe } from "./hud/Diagnostics";
+import { LandscapeGen } from "./LandscapeGen";
+import { useGameConfigStore } from "../store/useGameConfigStore";
+import { useLogicStore } from "../store/useLogicStore";
 
 export function Viewport() {
   const showPerf = useEditorStore((s) => s.showPerf);
@@ -19,6 +22,9 @@ export function Viewport() {
   const setSelectedId = useEditorStore((s) => s.setSelectedId);
   const setRendererLabel = useEditorStore((s) => s.setRendererLabel);
   const textureQuality = useGraphicsStore((s) => s.textureQuality);
+  const isPlaying = useGameConfigStore((s) => s.isPlaying);
+  const viewMode = useGameConfigStore((s) => s.viewMode);
+  const logicOpen = useLogicStore((s) => s.logicOpen);
 
   /**
    * WebGPU renderer with an automatic WebGL2 fallback: if `three/webgpu`
@@ -65,33 +71,8 @@ export function Viewport() {
 
       {showPerf && <Perf position="top-left" />}
 
-      <ambientLight intensity={0.5} />
-      <directionalLight
-        position={[10, 16, 8]}
-        intensity={2}
-        castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
-      />
-
       <Suspense fallback={null}>
-        <Environment preset={textureQuality === "low" ? undefined : "city"} environmentIntensity={textureQuality === "ultra" ? 1.15 : 0.85}>
-          <Lightformer intensity={5} position={[0, 8, 0]} scale={[16, 16, 1]} />
-          <Lightformer
-            intensity={1.2}
-            color="#b6f36a"
-            position={[-8, 3, -2]}
-            rotation-y={Math.PI / 2}
-            scale={[20, 3, 1]}
-          />
-          <Lightformer
-            intensity={0.8}
-            color="#5f8fa8"
-            position={[8, 2, 4]}
-            rotation-y={-Math.PI / 2}
-            scale={[20, 3, 1]}
-          />
-        </Environment>
+        <LandscapeGen />
       </Suspense>
 
       <Suspense fallback={null}>
@@ -104,7 +85,7 @@ export function Viewport() {
         <RemotePlayers />
       </Suspense>
 
-      <Grid
+      {!isPlaying && !logicOpen && <Grid
         position={[0, 0.01, 0]}
         args={[40, 40]}
         cellSize={1}
@@ -116,16 +97,16 @@ export function Viewport() {
         fadeDistance={60}
         fadeStrength={1.5}
         infiniteGrid
-      />
-      <axesHelper args={[4]} />
+      />}
+      {!isPlaying && !logicOpen && <axesHelper args={[4]} />
 
       <DiagnosticsProbe />
       {/* The pmndrs post stack is WebGL-only; WebGPU renders unprocessed. */}
-      {!webgpuEnabled && <Effects />}
+      {!webgpuEnabled && !isPlaying && <Effects />}
 
-      {!playerEnabled && <SelectionGizmo />}
+      {!isPlaying && !playerEnabled && viewMode === "scene" && <SelectionGizmo />}
 
-      {!playerEnabled && (
+      {!isPlaying && !playerEnabled && viewMode === "scene" && (
         <OrbitControls
           makeDefault
           enableDamping
