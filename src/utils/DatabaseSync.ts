@@ -1,6 +1,7 @@
 import { useAudioStore } from "../store/useAudioStore";
 import { useEditorStore } from "../store/useEditorStore";
 import { useGameConfigStore, type CutsceneData } from "../store/useGameConfigStore";
+import { useGraphicsStore } from "../store/useGraphicsStore";
 import { useLogicStore } from "../store/useLogicStore";
 import { useSceneStore } from "../store/useSceneStore";
 import { useVfxStore } from "../store/useVfxStore";
@@ -70,6 +71,28 @@ export interface ProjectSnapshot {
     zones: ReturnType<typeof useAudioStore.getState>["zones"];
     enabled: boolean;
   };
+  graphics: {
+    resolution: number;
+    displayMode: ReturnType<typeof useGraphicsStore.getState>["displayMode"];
+    upscaling: ReturnType<typeof useGraphicsStore.getState>["upscaling"];
+    vSync: boolean;
+    refreshRate: number;
+    fov: number;
+    drawDistance: number;
+    textureQuality: ReturnType<typeof useGraphicsStore.getState>["textureQuality"];
+    modelQuality: ReturnType<typeof useGraphicsStore.getState>["modelQuality"];
+    anisotropicFiltering: number;
+    shadowQuality: ReturnType<typeof useGraphicsStore.getState>["shadowQuality"];
+    shadowsEnabled: boolean;
+    rayTracing: boolean;
+    volumetricFog: boolean;
+    antiAliasing: ReturnType<typeof useGraphicsStore.getState>["antiAliasing"];
+    ambientOcclusion: boolean;
+    motionBlur: boolean;
+    depthOfField: boolean;
+    bloom: boolean;
+    bloomIntensity: number;
+  };
 }
 
 export interface StoredProjectEnvelope {
@@ -118,6 +141,7 @@ export function createProjectSnapshot(): ProjectSnapshot {
   const game = useGameConfigStore.getState();
   const vfx = useVfxStore.getState();
   const audio = useAudioStore.getState();
+  const graphics = useGraphicsStore.getState();
 
   return {
     version: 1,
@@ -180,6 +204,28 @@ export function createProjectSnapshot(): ProjectSnapshot {
       sources: audio.sources,
       zones: audio.zones,
       enabled: audio.enabled,
+    },
+    graphics: {
+      resolution: graphics.resolution,
+      displayMode: graphics.displayMode,
+      upscaling: graphics.upscaling,
+      vSync: graphics.vSync,
+      refreshRate: graphics.refreshRate,
+      fov: graphics.fov,
+      drawDistance: graphics.drawDistance,
+      textureQuality: graphics.textureQuality,
+      modelQuality: graphics.modelQuality,
+      anisotropicFiltering: graphics.anisotropicFiltering,
+      shadowQuality: graphics.shadowQuality,
+      shadowsEnabled: graphics.shadowsEnabled,
+      rayTracing: graphics.rayTracing,
+      volumetricFog: graphics.volumetricFog,
+      antiAliasing: graphics.antiAliasing,
+      ambientOcclusion: graphics.ambientOcclusion,
+      motionBlur: graphics.motionBlur,
+      depthOfField: graphics.depthOfField,
+      bloom: graphics.bloom,
+      bloomIntensity: graphics.bloomIntensity,
     },
   };
 }
@@ -296,6 +342,7 @@ export function restoreProject(snapshot: ProjectSnapshot) {
     zones: snapshot.audio.zones,
     enabled: snapshot.audio.enabled,
   });
+  useGraphicsStore.setState(snapshot.graphics);
 }
 
 export async function saveProjectToFile(filename = "genesis-project.json") {
