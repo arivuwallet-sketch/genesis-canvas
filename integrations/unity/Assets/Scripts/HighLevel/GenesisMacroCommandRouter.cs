@@ -69,9 +69,11 @@ namespace Genesis.HighLevel
                         var rules = new GenesisMacroGameManager.Rules
                         {
                             timeLimitMinutes = InferTimeLimit(command.payload.genre),
-                            targetScore = command.payload.genre.IndexOf("shooter", StringComparison.OrdinalIgnoreCase) >= 0
-                                ? 1000
-                                : 500,
+                            targetScore = command.payload.win_condition.IndexOf("extract", StringComparison.OrdinalIgnoreCase) >= 0
+                                ? 0
+                                : command.payload.genre.IndexOf("shooter", StringComparison.OrdinalIgnoreCase) >= 0
+                                    ? 1000
+                                    : 500,
                             extractionRequired =
                                 command.payload.genre.IndexOf("extraction", StringComparison.OrdinalIgnoreCase) >= 0 ||
                                 command.payload.win_condition.IndexOf("extract", StringComparison.OrdinalIgnoreCase) >= 0,
