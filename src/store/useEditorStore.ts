@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { playRegisteredAnimation } from "../lib/animationRegistry";
+import type { GameplayActorSpec } from "../gameplay/GameplayActorTypes";
 
 export type CameraMode = "first" | "third";
 export type GraphicsQuality = "low" | "medium" | "ultra";
@@ -53,6 +54,7 @@ export interface SpawnedObject {
   physics: PhysicsProps;
   /** CSG subtractions applied to this entity's geometry. */
   carves: Carve[];
+  gameplay: GameplayActorSpec;
 }
 
 export interface LogEntry {
@@ -149,6 +151,13 @@ export function createSpawnedObject(patch: Partial<SpawnedObject>): SpawnedObjec
     locked: patch.locked ?? false,
     physics: { ...DEFAULT_PHYSICS, ...(patch.physics ?? {}) },
     carves: patch.carves ?? [],
+    gameplay: patch.gameplay ?? {
+      archetype: "unknown",
+      controllable: false,
+      capabilities: [],
+      materialProfile: "realistic",
+      autoControl: false,
+    },
   };
 }
 
