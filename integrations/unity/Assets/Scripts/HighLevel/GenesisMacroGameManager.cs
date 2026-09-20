@@ -72,6 +72,13 @@ namespace Genesis.HighLevel
             EvaluateRules();
         }
 
+        public void SetWorldState(MacroWorldState world)
+        {
+            if (world == null) return;
+            World = world;
+            GameRules.timeLimitMinutes = world.timeLimitMinutes;
+        }
+
         public void ConfigureRules(Rules rules)
         {
             GameRules = rules ?? new Rules();
