@@ -13,84 +13,67 @@ interface PlanningAction {
   apply: (state: Record<string, unknown>) => void;
 }
 
-export function planMacroGoal(goal: MacroGoal, initialState: Record<string, unknown>, actions: PlanningAction[]) {
-  const state = { ...initialState };
-  const selected: string[] = [];
+export function planMacroGoal(
+  goal: MacroGoal,
+  initialState: Record<string, unknown>,
+  actions: PlanningAction[],
+) {
+  type Node = { state: Record<string, unknown>; plan: string[]; cost: number };
 
-  const ordered = [...actions].sort(
-    (a, b) => a.cost - b.cost,
-  );
-
-  for (const action of ordered) {
-    if (!action.canRun(state)) continue;
-    action.apply(state);
-    selected.push(action.name);
-
-    const satisfied = Object.entries(goal.desiredState).every(
+  const satisfies = (state: Record<string, unknown>) =>
+    Object.entries(goal.desiredState).every(
       ([key, expected]) => state[key] === expected,
     );
 
-    if (satisfied) break;
+  if (satisfies(initialState)) {
+    return {
+      goalId: goal.id,
+      selectedActions: [],
+      resultingState: { ...initialState },
+    };
   }
 
-  return { goalId: goal.id, selectedActions: selected, resultingState: state };
-}
+  let frontier: Node[] = [{ state: { ...initialState }, plan: [], cost: 0 }];
+  const visited = new Set<string>();
 
-const types: QuestObjectiveType[] = [
-  "Fetch",
-  "Escort",
-  "Assassinate",
-  "Defend",
-];
+  for (let depth = 0; depth < 8 && frontier.length > 0; depth++) {
+    const next: Node[] = [];
 
-const pick = <T>(values: T[], index: number) => values[index % values.length]!;
+    for (const node of frontier) {
+      for (const action of actions) {
+        if (!action.canRun(node.state)) continue;
 
-export function generateDynamicQuest(
-  world: WorldState,
-  seed = 1,
-): QuestGraph {
-  const difficulty = Math.max(
-    1,
-    Math.min(10, Math.round(world.alertLevel * 8 + 2)),
-  );
-  const faction = world.factionControl || "neutral";
-  const count = world.timeLimitMinutes >= 30 ? 4 : 3;
+        const state = { ...node.state };
+        action.apply(state);
+        const plan = [...node.plan, action.name];
+        const key = JSON.stringify(state);
+        if (visited.has(key)) continue;
+        visited.add(key);
 
-  const objectives: QuestObjective[] = Array.from({ length: count }, (_, index) => {
-    const type = pick(types, seed + index * 3);
-    const suffix = pick(
-      ["bridge", "vault", "supply_cache", "watchtower", "convoy"],
-      seed + index,
-    );
+        if (satisfies(state)) {
+          return {
+            goalId: goal.id,
+            selectedActions: plan,
+            resultingState: state,
+          };
+        }
 
-    return {
-      id: `objective_${seed}_${index}`,
-      type,
-      title:
-        type === "Fetch"
-          ? `Recover the ${suffix}`
-          : type === "Escort"
-            ? `Escort the ${suffix}`
-            : type === "Assassinate"
-              ? `Eliminate the ${faction} commander`
-              : `Defend the ${suffix}`,
-      targetTag: type === "Assassinate" ? `${faction}:commander` : suffix,
-      locationTag: world.currentLocation || "unknown",
-      optional: index === count - 1 && difficulty < 7,
-      prerequisites: index === 0 ? [] : [`objective_${seed}_${index - 1}`],
-      reward: 100 * difficulty + index * 50,
-    };
-  });
+        next.push({
+          state,
+          plan,
+          cost: node.cost + action.cost,
+        });
+      }
+    }
+
+    next.sort((a, b) => a.cost - b.cost);
+    frontier = next.slice(0, 32);
+  }
 
   return {
-    questId: `quest_${seed}_${world.currentLocation || "world"}`,
-    title: `${faction} operation: ${world.currentLocation || "unknown"}`,
-    objectives,
-    rootObjectiveId: objectives[0]!.id,
-    metadata: {
-      generatedFromLocation: world.currentLocation || "unknown",
-      faction,
-      difficulty,
-    },
+    goalId: goal.id,
+    selectedActions: [],
+    resultingState: { ...initialState },
   };
 }
+
