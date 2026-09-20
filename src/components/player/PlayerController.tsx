@@ -7,6 +7,7 @@ import { useEditorStore } from "../../store/useEditorStore";
 import { useGameConfigStore } from "../../store/useGameConfigStore";
 import { playerPosition, playerState } from "../../state/playerTransform";
 import { sendTransform } from "../../network/socketClient";
+import { sendPlayerInput } from "../../hooks/useColyseusClient";
 
 /* ------------------------------------------------------------------ */
 /* Keyboard map — WASD + space to jump + shift to run                  */
@@ -99,10 +100,12 @@ function ControllerRig() {
   const camera = useThree((s) => s.camera);
   const gl = useThree((s) => s.gl);
   const isPlaying = useGameConfigStore((s) => s.isPlaying);
+  const multiplayerMode = useGameConfigStore((s) => s.multiplayerMode);
   const setPlaying = useGameConfigStore((s) => s.setPlaying);
   const cameraMode = useEditorStore((s) => s.cameraMode);
   const firstPerson = cameraMode === "first";
   const look = useMouseLook(true);
+  const inputSendAccumulator = useRef(0);
 
   useEffect(() => {
     if (!isPlaying) return;
@@ -150,6 +153,25 @@ function ControllerRig() {
     playerState.yaw = yaw;
     playerState.active = true;
     sendTransform({ position: [pos.x, pos.y, pos.z], yaw });
+
+    inputSendAccumulator.current += delta;
+    if (
+      (multiplayerMode === "online" || multiplayerMode === "online-coop") &&
+      inputSendAccumulator.current >= 0.05
+    ) {
+      inputSendAccumulator.current = 0;
+      sendPlayerInput({
+        up: !!keys["forward"],
+        down: !!keys["backward"],
+        left: !!keys["leftward"],
+        right: !!keys["rightward"],
+        jump: !!keys["jump"],
+        attack: false,
+        sprint: !!keys["run"],
+        analogX: Number(!!keys["rightward"]) - Number(!!keys["leftward"]),
+        analogY: Number(!!keys["backward"]) - Number(!!keys["forward"]),
+      });
+    }
 
     if (firstPerson) {
       camera.position.lerp(camTarget, 1 - Math.exp(-30 * delta));
