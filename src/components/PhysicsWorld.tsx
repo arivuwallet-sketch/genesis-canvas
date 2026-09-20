@@ -5,6 +5,7 @@ import { AssetLoader } from "./AssetLoader";
 import { PlayerController } from "./player/PlayerController";
 import { useEditorStore } from "../store/useEditorStore";
 import { useGraphicsStore } from "../store/useGraphicsStore";
+import { useGameConfigStore } from "../store/useGameConfigStore";
 
 
 function RealisticGround({ detailed }: { detailed: boolean }) {
@@ -49,6 +50,7 @@ function RealisticGround({ detailed }: { detailed: boolean }) {
 
 export function PhysicsWorld({ children }: { children?: ReactNode }) {
   const playerEnabled = useEditorStore((s) => s.playerEnabled);
+  const isPlaying = useGameConfigStore((s) => s.isPlaying);
   const quality = useGraphicsStore((s) => s.textureQuality);
 
   return (
@@ -80,7 +82,7 @@ export function PhysicsWorld({ children }: { children?: ReactNode }) {
         <AssetLoader />
       </Suspense>
 
-      {playerEnabled && <PlayerController />}
+      {(playerEnabled || isPlaying) && <PlayerController />}
 
       {children}
     </Physics>
