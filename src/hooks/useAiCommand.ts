@@ -1,6 +1,8 @@
 import { useCallback, useRef } from "react";
 import { useEditorStore } from "../store/useEditorStore";
 import { startAgentActivitySimulation } from "../store/useAgentActivityStore";
+import { getLatestSceneStateJson } from "../workers/SceneStateSerializer";
+import { runVisualQaAndApplyCorrection } from "../utils/visualQa";
 import { useGraphicsStore } from "../store/useGraphicsStore";
 import { matchCatalog } from "../data/modelCatalog";
 import { applyAiResponse, applyCommand, extractAssistantReply } from "../utils/CommandParser";
@@ -103,7 +105,17 @@ export function useAiCommand() {
       )
       .join("\n");
 
-    const context = `Recent conversation:\n${conversation || "(none)"}\n\nCurrent world:\n${world || "(empty)"}`;
+    const spatialMemory = getLatestSceneStateJson();
+    const context = [
+      "SPATIAL MEMORY (latest delta-compressed scene state):",
+      spatialMemory,
+      "",
+      "Recent conversation:",
+      conversation || "(none)",
+      "",
+      "Current render-world summary:",
+      world || "(empty)",
+    ].join("\n");
 
     try {
       const res = await fetch("/api/ai/chat", {
@@ -161,6 +173,19 @@ export function useAiCommand() {
       if (errored) throw new Error(errored);
 
       const result = applyAiResponse(full);
+
+      // Visual QA is deliberately fire-and-forget: the user interaction and
+      // 3D renderer never wait on the vision model.
+      if (result.ok) {
+        void runVisualQaAndApplyCorrection(prompt, result.message).then((qa) => {
+          if (!qa) return;
+          const state = useEditorStore.getState();
+          if (qa.message && qa.message !== result.message) {
+            state.pushLog(`Visual QA: ${qa.message}`, "system");
+          }
+        });
+      }
+
       const assistantReply =
         extractAssistantReply(full) ??
         (result.ok ? result.message : "I couldn't complete that request.");
