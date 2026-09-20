@@ -38,9 +38,6 @@ export const MODEL_CATALOG: CatalogEntry[] = [
   { name:"Ground Tile", modelUrl:"/models/ground-tile.glb", scale:1, category:"nature", keywords:["ground tile","terrain","land","tile","floor patch"] },
   { name:"Campfire", modelUrl:"/models/campfire.glb", scale:1, category:"prop", keywords:["campfire","fire","bonfire","logs"] },
 
-  { name:"Crate", modelUrl:"/models/crate.glb", scale:1, category:"prop", keywords:["crate","wooden crate","box prop"] },
-  { name:"Barrel", modelUrl:"/models/barrel.glb", scale:1, category:"prop", keywords:["barrel","drum"] },
-  { name:"Streetlight", modelUrl:"/models/streetlight.glb", scale:1, category:"prop", keywords:["streetlight","street light","lamp post","lamp"] },
 ];
 
 const KEYWORD_INDEX = MODEL_CATALOG.flatMap((entry) =>
