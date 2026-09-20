@@ -31,6 +31,7 @@ const normalize = (value: string) =>
 
 export function inferGameplayArchetype(
   category?: AssetCategory,
+  text = "",
 ): GameplayArchetype {
   switch (category) {
     case "vehicle":
@@ -43,9 +44,26 @@ export function inferGameplayArchetype(
       return "prop";
     case "nature":
       return "nature";
-    default:
-      return "unknown";
   }
+
+  const normalized = normalize(text);
+  if (/\b(car|vehicle|truck|van|bus|taxi|suv|jeep|tank|bike|motorcycle|motorbike|boat|aircraft|plane|helicopter)\b/.test(normalized)) {
+    return "vehicle";
+  }
+  if (/\b(man|woman|person|people|human|character|npc|soldier|guard|enemy|robot|hero|villain)\b/.test(normalized)) {
+    return "humanoid";
+  }
+  if (/\b(building|house|shop|store|office|apartment|tower|warehouse|door|room)\b/.test(normalized)) {
+    return "building";
+  }
+  if (/\b(tree|plant|bush|rock|stone|grass|foliage)\b/.test(normalized)) {
+    return "nature";
+  }
+  if (/\b(crate|barrel|chest|container|prop|pickup|item)\b/.test(normalized)) {
+    return "prop";
+  }
+
+  return "unknown";
 }
 
 export function inferGameplaySpec(
@@ -53,7 +71,7 @@ export function inferGameplaySpec(
   text = "",
 ): GameplayActorSpec {
   const normalized = normalize(text);
-  const archetype = inferGameplayArchetype(category);
+  const archetype = inferGameplayArchetype(category, text);
   const realistic = /\b(realistic|real|photoreal|photorealistic|cinematic|high fidelity)\b/.test(
     normalized,
   );
