@@ -5,6 +5,8 @@ import { useSceneStore } from "./useSceneStore";
 import { useLogicStore } from "./useLogicStore";
 import type { LogicEdge, LogicNode } from "./useLogicStore";
 
+export type EditorViewMode = "scene" | "logic";
+
 export type AgentTab =
   | "master"
   | "story"
@@ -69,6 +71,8 @@ interface GameConfigState {
   setPlaying: (playing: boolean) => void;
   setTimeOfDay: (time: number) => void;
   setTerrain: (patch: Partial<GameConfigState["terrain"]>) => void;
+  viewMode: EditorViewMode;
+  setViewMode: (mode: EditorViewMode) => void;
 
   /* agents */
   activeTab: AgentTab;
@@ -320,6 +324,12 @@ export const useGameConfigStore = create<GameConfigState>((set, get) => ({
             : Math.max(0, Math.min(15, patch.mountainHeight)),
       },
     })),
+  viewMode: "scene",
+  setViewMode: (viewMode) => {
+    set({ viewMode });
+    useLogicStore.getState().setLogicOpen(viewMode === "logic");
+  },
+
   setPrimaryGenre: (genre) => {
     const group = GENRE_MATRIX.find((g) => g.genre === genre);
     set({ primaryGenre: genre, subGenre: group?.subGenres[0] ?? "" });
