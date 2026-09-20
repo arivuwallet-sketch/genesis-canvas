@@ -62,7 +62,7 @@ export const Route = createFileRoute("/api/ai/chat")({
             "X-Lovable-AIG-SDK": "fetch",
           },
           body: JSON.stringify({
-            model: "openai/gpt-5.6-sol",
+            model: "openai/gpt-6-astra",
             stream: true,
             instructions: `${SYSTEM_PROMPT}\n${SCHEMA_HINT}`,
             input: [
@@ -78,7 +78,7 @@ export const Route = createFileRoute("/api/ai/chat")({
                 ],
               },
             ],
-            reasoning: { effort: "low", summary: "auto" },
+            reasoning: { effort: "max", summary: "auto" },
             include: ["reasoning.encrypted_content"],
             store: false,
           }),
