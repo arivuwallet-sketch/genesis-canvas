@@ -7,7 +7,7 @@ import { useMacroGameStore } from "../store/useMacroGameStore";
 export function MacroDirectorRuntime() {
   const elapsed = useRef(0);
   const recentDamage = useRef(0);
-  const lastCombat = useRef(30);
+  const lastCombat = useRef(30);\n  const worldClockAccumulator = useRef(0);\n  const loopAccumulator = useRef(0);
 
   useEffect(() => {
     const unhealth = gameplayEventBus.on("onPlayerHealthChange", (event) => {
@@ -51,13 +51,27 @@ export function MacroDirectorRuntime() {
       timeSinceCombatSeconds: lastCombat.current,
     });
 
-    macro.tickDirector(delta);
-    macro.setWorldState({
-      timeRemainingSeconds: Math.max(
-        0,
-        macro.world.timeLimitMinutes * 60 - elapsed.current,
-      ),
-    });
+    if (macro.world.timeRemainingSeconds > 0) {
+      macro.tickGameLoop(delta);
+    }
+
+    worldClockAccumulator.current += delta;
+    loopAccumulator.current += delta;
+
+    if (worldClockAccumulator.current >= 0.25) {
+      worldClockAccumulator.current = 0;
+      macro.setWorldState({
+        timeRemainingSeconds: Math.max(
+          0,
+          macro.world.timeLimitMinutes * 60 - elapsed.current,
+        ),
+      });
+    }
+
+    if (loopAccumulator.current >= 0.5) {
+      loopAccumulator.current = 0;
+      macro.tickGameLoop(0);
+    }
   });
 
   return null;
