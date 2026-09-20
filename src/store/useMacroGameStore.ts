@@ -144,7 +144,30 @@ export const useMacroGameStore = create<MacroGameState>((set, get) => ({
     set((state) => ({
       meta: applyExtractionReward(state.meta, reward),
       extracted: true,
+      loop: { ...state.loop, extracted: true },
     })),
+
+  restoreMacroSnapshot: (snapshot) => {
+    director.restoreRuntimeState(snapshot.directorRuntime);
+    set({
+      world: snapshot.world,
+      director: snapshot.director,
+      rules: snapshot.rules,
+      gameLoopConfig: snapshot.gameLoopConfig,
+      quests: snapshot.quests,
+      completedQuestObjectives: snapshot.completedQuestObjectives,
+      meta: snapshot.meta,
+      score: snapshot.score,
+      playerAlive: snapshot.playerAlive,
+      extracted: snapshot.extracted,
+      artifactSecured: snapshot.artifactSecured,
+      loop: snapshot.loop,
+      lastSpawnIntent: null,
+      directorRunning: true,
+    });
+  },
+
+  getDirectorRuntimeState: () => director.getRuntimeState(),
 
   updateTelemetry: (patch) =>
     set((state) => ({ telemetry: { ...state.telemetry, ...patch } })),
