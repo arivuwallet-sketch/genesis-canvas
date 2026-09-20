@@ -1,11 +1,55 @@
 import { Physics, RigidBody } from "@react-three/rapier";
-import { Suspense, type ReactNode } from "react";
+import { Suspense, useEffect, useMemo, type ReactNode } from "react";
+import * as THREE from "three";
 import { AssetLoader } from "./AssetLoader";
 import { PlayerController } from "./player/PlayerController";
 import { useEditorStore } from "../store/useEditorStore";
+import { useGraphicsStore } from "../store/useGraphicsStore";
+
+
+function RealisticGround({ detailed }: { detailed: boolean }) {
+  const texture = useMemo(() => {
+    if (!detailed || typeof document === "undefined") return null;
+    const canvas = document.createElement("canvas");
+    canvas.width = 256;
+    canvas.height = 256;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    const image = ctx.createImageData(canvas.width, canvas.height);
+    for (let i = 0; i < image.data.length; i += 4) {
+      const n = 34 + Math.floor(Math.random() * 24);
+      image.data[i] = n;
+      image.data[i + 1] = n + 4;
+      image.data[i + 2] = n + 2;
+      image.data[i + 3] = 255;
+    }
+    ctx.putImageData(image, 0, 0);
+    const t = new THREE.CanvasTexture(canvas);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(18, 18);
+    t.anisotropy = 8;
+    return t;
+  }, [detailed]);
+
+  useEffect(() => () => texture?.dispose(), [texture]);
+
+  return (
+    <mesh position={[0, -0.25, 0]} receiveShadow>
+      <boxGeometry args={[40, 0.5, 40]} />
+      <meshStandardMaterial
+        map={texture ?? undefined}
+        color={detailed ? "#596052" : "#14181a"}
+        roughness={0.9}
+        metalness={0.02}
+      />
+    </mesh>
+  );
+}
 
 export function PhysicsWorld({ children }: { children?: ReactNode }) {
   const playerEnabled = useEditorStore((s) => s.playerEnabled);
+  const quality = useGraphicsStore((s) => s.textureQuality);
 
   return (
     <Physics gravity={[0, -9.81, 0]}>
