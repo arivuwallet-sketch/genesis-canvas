@@ -1,0 +1,17 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "1.0",
+  "FriendlyName": "Genesis Extreme Core",
+  "Description": "Cross-engine AI control, MassEntity, Smart Objects, and runtime rendering controls.",
+  "Category": "Genesis AI",
+  "EnabledByDefault": false,
+  "CanContainContent": false,
+  "Modules": [
+    {
+      "Name": "GenesisExtremeCore",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    }
+  ]
+}
