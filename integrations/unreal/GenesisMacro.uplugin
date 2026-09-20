@@ -1,0 +1,17 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "1.0",
+  "FriendlyName": "Genesis High-Level Macro Architecture",
+  "Description": "AI Director, macro quest orchestration, GameMode rules, persistent progression, and binary save serialization.",
+  "Category": "Genesis AI",
+  "EnabledByDefault": false,
+  "CanContainContent": true,
+  "Modules": [
+    {
+      "Name": "GenesisMacro",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    }
+  ]
+}
