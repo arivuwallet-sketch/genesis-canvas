@@ -201,7 +201,7 @@ export function OverlayUI() {
         <div className="glass-panel flex items-center gap-3 rounded-full px-4 py-2">
           <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_10px_var(--primary)]" />
           <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-foreground/80">
-            Omnipotent Engine
+            Genesis AI Engine
           </span>
         </div>
 
@@ -302,14 +302,14 @@ export function OverlayUI() {
             }}
             className="glass-panel flex w-full items-center gap-3 rounded-2xl px-4 py-3"
           >
-            <span className="font-mono text-xs text-primary">›</span>
+            <span className="font-mono text-xs text-primary">✦</span>
             <input
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
               placeholder={
                 activeTab === "master"
                   ? 'Master prompt — e.g. "build a racing level with a main menu"…'
-                  : 'Try "spawn a falling red box" or "clear"…'
+                  : 'Talk to Genesis — e.g. "make this street feel alive" or "add a sports car"…'
               }
               className="min-w-0 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/70 focus:outline-none"
             />
