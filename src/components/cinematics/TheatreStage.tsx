@@ -1,10 +1,9 @@
 import { SheetProvider, editable } from "@theatre/r3f";
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useMemo, useRef } from "react";
+import { useRef } from "react";
 import * as THREE from "three";
 import { useGameConfigStore } from "../../store/useGameConfigStore";
 import { theatreSheet } from "../../lib/theatre";
-import { CINEMATIC_CAMERA_PROPS } from "../../lib/theatre";
 
 function samplePath(
   points: Array<{ time: number; position: [number, number, number]; lookAt: [number, number, number] }>,
@@ -42,26 +41,10 @@ function samplePath(
 export function TheatreStage() {
   const open = useGameConfigStore((state) => state.cinematicsOpen);
   const cutscene = useGameConfigStore((state) => state.cutsceneData);
-  const playing = useGameConfigStore((state) => state.isPlaying);
   const camera = useRef<THREE.PerspectiveCamera | null>(null);
 
-  const cameraObject = useMemo(
-    () =>
-      theatreSheet.object("AI Cutscene Camera", CINEMATIC_CAMERA_PROPS),
-    [],
-  );
-
-  useEffect(() => {
-    return cameraObject.onValuesChange((values) => {
-      const mainCamera = camera.current;
-      if (!mainCamera) return;
-      mainCamera.position.set(values.position.x, values.position.y, values.position.z);
-      mainCamera.lookAt(values.lookAt.x, values.lookAt.y, values.lookAt.z);
-    });
-  }, [cameraObject]);
-
-  useFrame((_, delta) => {
-    if (!open || playing || !cutscene || !camera.current) return;
+  useFrame(() => {
+    if (!open || !cutscene || !camera.current) return;
     const time = Math.max(0, Math.min(cutscene.duration, theatreSheet.sequence.position));
     const sample = samplePath(cutscene.cameraPath, time);
     camera.current.position.set(...sample.position);
@@ -81,6 +64,7 @@ export function TheatreStage() {
       <editable.perspectiveCamera
         ref={camera}
         theatreKey="AI Cutscene Camera"
+        makeDefault
         position={initial.position}
         fov={55}
       />
