@@ -9,6 +9,7 @@
 #include "InputAction.h"
 #include "InputMappingContext.h"
 #include "InputActionValue.h"
+#include "GenesisGameplayTags.h"
 
 AGenesisAbilityCharacter::AGenesisAbilityCharacter()
 {
@@ -129,11 +130,9 @@ void AGenesisAbilityCharacter::HandlePrimaryInput(
     {
         if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
         {
-            const FGameplayTag Tag = FGameplayTag::RequestGameplayTag(
-                TEXT("Ability.Primary"));
-            ASC->TryActivateAbilitiesByTag(
-                FGameplayTagContainer(Tag),
-                true);
+            FGameplayTagContainer Tags;
+            Tags.AddTag(TAG_Ability_Primary);
+            ASC->TryActivateAbilitiesByTag(Tags, true);
         }
     }
 }
@@ -145,11 +144,9 @@ void AGenesisAbilityCharacter::HandleInteractInput(
     {
         if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
         {
-            const FGameplayTag Tag = FGameplayTag::RequestGameplayTag(
-                TEXT("Ability.Interact"));
-            ASC->TryActivateAbilitiesByTag(
-                FGameplayTagContainer(Tag),
-                true);
+            FGameplayTagContainer Tags;
+            Tags.AddTag(TAG_Ability_Interact);
+            ASC->TryActivateAbilitiesByTag(Tags, true);
         }
     }
 }
