@@ -1,4 +1,4 @@
-import { Edges, Html, useGLTF, useProgress } from "@react-three/drei";
+import { Edges, Html, useAnimations, useGLTF, useProgress } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
 import { RigidBody, type RapierRigidBody } from "@react-three/rapier";
 import {
@@ -12,6 +12,7 @@ import {
 import * as THREE from "three";
 import { clone as skeletonClone } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { extendGLTFLoader, optimizeScene } from "../utils/assetManager";
+import { registerAnimationActions, unregisterAnimationActions } from "../lib/animationRegistry";
 import { carveGeometry, makePrimitiveGeometry } from "../utils/csg";
 import { useEditorStore, type SpawnedObject } from "../store/useEditorStore";
 
@@ -116,13 +117,26 @@ function PrimitiveMesh({
 function GLTFModel({
   url,
   scale,
+  entityId,
 }: {
   url: string;
   scale: [number, number, number];
+  entityId: string;
 }) {
   const gl = useThree((s) => s.gl);
-  const { scene } = useGLTF(url, true, true, (loader) => extendGLTFLoader(loader, gl));
+  const { scene, animations } = useGLTF(url, true, true, (loader) =>
+    extendGLTFLoader(loader, gl),
+  );
   const cloned = useMemo(() => optimizeScene(skeletonClone(scene)), [scene]);
+  const { actions, mixer } = useAnimations(animations, cloned);
+
+  useEffect(() => {
+    registerAnimationActions(entityId, actions);
+    return () => {
+      mixer.stopAllAction();
+      unregisterAnimationActions(entityId);
+    };
+  }, [actions, entityId, mixer]);
 
   return <primitive object={cloned} scale={scale} />;
 }
@@ -187,7 +201,7 @@ function SpawnedEntity({ object }: { object: SpawnedObject }) {
             fallback={<FallbackVolume scale={object.scale} label="Procedural stand-in" />}
           >
             <Suspense fallback={<FallbackVolume scale={object.scale} />}>
-              <GLTFModel url={object.modelUrl} scale={object.scale} />
+              <GLTFModel url={object.modelUrl} scale={object.scale} entityId={object.id} />
             </Suspense>
           </ModelErrorBoundary>
         ) : (
