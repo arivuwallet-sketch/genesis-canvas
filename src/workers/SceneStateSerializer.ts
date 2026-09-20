@@ -35,10 +35,10 @@ const compactEntity = (entity: EcsEntityRecord): CompactEntity => [
 const sceneFallbackEntities = (): EcsEntityRecord[] => {
   const scene = useSceneStore.getState();
   const meshEntities = scene.nodes
-    .filter((node) => node.visible && node.type === "mesh")
+    .filter((node) => node.visible)
     .map((node) => ({
 
-    id: node.id, name: node.name, category: "prop" as const,
+    id: node.id, name: node.name, category: node.type === "camera" || node.type === "light" ? "system" as const : "prop" as const,
     transform: { position: node.position, rotation: [0, 0, 0] as [number, number, number], scale: [1, 1, 1] as [number, number, number] },
     bounds: { size: [2, 2, 2] as [number, number, number] },
     physics: { bodyType: "fixed", massKg: 0, friction: 1, restitution: 0, gravityScale: 0 },
