@@ -174,8 +174,8 @@ export const useSceneStore = create<SceneState>((set, get) => ({
           id,
           name: object.name,
           type: "mesh" as const,
-          visible: previous?.visible ?? true,
-          locked: previous?.locked ?? false,
+          visible: object.visible ?? previous?.visible ?? true,
+          locked: object.locked ?? previous?.locked ?? false,
           parentId: SCENE_ROOT_ID,
           position: object.position,
         };
