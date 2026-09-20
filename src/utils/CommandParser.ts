@@ -14,6 +14,7 @@ import {
 } from "../store/useEditorStore";
 import { MODEL_CATALOG, matchCatalog, type CatalogEntry } from "../data/modelCatalog";
 import { useGameConfigStore } from "../store/useGameConfigStore";
+import { requestNetworkedBoss } from "../hooks/useColyseusClient";
 
 const GEOMETRIES: PrimitiveGeometry[] = [
   "box",
@@ -286,6 +287,23 @@ export function applyCommand(input: unknown): CommandResult {
         : { ok: false, message: `Animation "${animationName}" was not found on that entity.` };
     }
 
+    case "spawn_networked_boss":
+    case "spawnNetworkedBoss": {
+      const rawName = input["name"] ?? input["bossName"];
+      const name =
+        typeof rawName === "string" && rawName.trim()
+          ? rawName.trim().slice(0, 48)
+          : "Networked Boss";
+      const position = vec3(input["position"] ?? input["pos"], [0, 1, -6]) ?? [0, 1, -6];
+      const sent = requestNetworkedBoss(name, position);
+      const mode = useGameConfigStore.getState().multiplayerMode;
+      return {
+        ok: true,
+        message: sent
+          ? "Sent RPC to spawn " + name + " for all players in the " + mode + " room."
+          : "Spawned a simulated network boss " + name + "; connect an online room to broadcast it.",
+      };
+    }
     case "spawn":
     case "create":
     case "add": {
