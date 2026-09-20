@@ -16,6 +16,7 @@ import { registerAnimationActions, unregisterAnimationActions } from "../lib/ani
 import { carveGeometry, makePrimitiveGeometry } from "../utils/csg";
 import { useEditorStore, type SpawnedObject } from "../store/useEditorStore";
 import { useVfxStore, type Decal as VfxDecal } from "../store/useVfxStore";
+import { GameplayActor } from "./gameplay/GameplayActor";
 
 /* ------------------------------------------------------------------ */
 /* Error boundary -> stylized fallback volume                          */
@@ -192,14 +193,103 @@ function PrimitiveDecals({ objectId }: { objectId: string }) {
 /* GLTF model — DRACO + KTX2 enabled, BVH optimized                    */
 /* ------------------------------------------------------------------ */
 
+
+function enhanceRealisticMaterials(
+  root: THREE.Object3D,
+  archetype: SpawnedObject["gameplay"]["archetype"],
+) {
+  root.traverse((node) => {
+    const mesh = node as THREE.Mesh;
+    if (!mesh.isMesh || !mesh.material) return;
+
+    const materials = Array.isArray(mesh.material)
+      ? mesh.material
+      : [mesh.material];
+
+    const enhanced = materials.map((source) => {
+      const materialName = String(source.name || "").toLowerCase();
+      const nodeName = String(mesh.name || "").toLowerCase();
+      const isGlass = /glass|window|windshield|windscreen/.test(
+        materialName + " " + nodeName,
+      );
+      const isTire = /tire|tyre|rubber|wheel/.test(
+        materialName + " " + nodeName,
+      );
+      const isChrome = /chrome|mirror|metal|rim/.test(
+        materialName + " " + nodeName,
+      );
+
+      if (
+        !(source as THREE.Material & { isMeshStandardMaterial?: boolean })
+          .isMeshStandardMaterial &&
+        !(source as THREE.Material & { isMeshPhysicalMaterial?: boolean })
+          .isMeshPhysicalMaterial
+      ) {
+        return source;
+      }
+
+      if (
+        (source as THREE.Material & { isMeshPhysicalMaterial?: boolean })
+          .isMeshPhysicalMaterial
+      ) {
+        const physical = source.clone() as THREE.MeshPhysicalMaterial;
+        physical.metalness = isTire ? 0 : isChrome ? 1 : archetype === "vehicle" ? 0.82 : 0.18;
+        physical.roughness = isGlass
+          ? 0.08
+          : isTire
+            ? 0.78
+            : isChrome
+              ? 0.12
+              : archetype === "vehicle"
+                ? 0.2
+                : 0.45;
+        physical.clearcoat = isGlass || archetype === "vehicle" ? 0.65 : 0.18;
+        physical.clearcoatRoughness = isGlass ? 0.08 : 0.18;
+        if (isGlass) {
+          physical.transmission = 0.42;
+          physical.ior = 1.5;
+        }
+        return physical;
+      }
+
+      const physical = new THREE.MeshPhysicalMaterial().copy(
+        source as THREE.MeshStandardMaterial,
+      );
+      physical.name = source.name + "_realistic";
+      physical.metalness = isTire ? 0 : isChrome ? 1 : archetype === "vehicle" ? 0.82 : 0.18;
+      physical.roughness = isGlass
+        ? 0.08
+        : isTire
+          ? 0.78
+          : isChrome
+            ? 0.12
+            : archetype === "vehicle"
+              ? 0.2
+              : 0.45;
+      physical.clearcoat = isGlass || archetype === "vehicle" ? 0.65 : 0.18;
+      physical.clearcoatRoughness = isGlass ? 0.08 : 0.18;
+      if (isGlass) {
+        physical.transmission = 0.42;
+        physical.ior = 1.5;
+      }
+      return physical;
+    });
+
+    mesh.material = Array.isArray(mesh.material) ? enhanced : enhanced[0]!;
+  });
+}
+
+
 function GLTFModel({
   url,
   scale,
   entityId,
+  archetype,
 }: {
   url: string;
   scale: [number, number, number];
   entityId: string;
+  archetype: SpawnedObject["gameplay"]["archetype"];
 }) {
   const gl = useThree((s) => s.gl);
   const { scene, animations } = useGLTF(url, true, true, (loader) =>
@@ -207,6 +297,10 @@ function GLTFModel({
   );
   const cloned = useMemo(() => optimizeScene(skeletonClone(scene)), [scene]);
   const { actions, mixer } = useAnimations(animations, cloned);
+
+  useEffect(() => {
+    enhanceRealisticMaterials(cloned, archetype);
+  }, [archetype, cloned]);
 
   useEffect(() => {
     registerAnimationActions(entityId, actions);
@@ -279,11 +373,20 @@ function SpawnedEntity({ object }: { object: SpawnedObject }) {
             fallback={<FallbackVolume scale={object.scale} label="Procedural stand-in" />}
           >
             <Suspense fallback={<FallbackVolume scale={object.scale} />}>
-              <GLTFModel url={object.modelUrl} scale={object.scale} entityId={object.id} />
+              <GameplayActor object={object} bodyRef={body}>
+                <GLTFModel
+                  url={object.modelUrl}
+                  scale={object.scale}
+                  entityId={object.id}
+                  archetype={object.gameplay.archetype}
+                />
+              </GameplayActor>
             </Suspense>
           </ModelErrorBoundary>
         ) : (
-          <PrimitiveMesh object={object} selected={selected} />
+          <GameplayActor object={object} bodyRef={body}>
+            <PrimitiveMesh object={object} selected={selected} />
+          </GameplayActor>
         )}
       </group>
     </RigidBody>
