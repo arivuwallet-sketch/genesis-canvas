@@ -147,7 +147,11 @@ function createDecalTexture(kind: VfxDecal["type"]) {
 }
 
 function PrimitiveDecals({ objectId }: { objectId: string }) {
-  const decals = useVfxStore((state) => state.decals.filter((item) => item.targetId === objectId));
+  const allDecals = useVfxStore((state) => state.decals);
+  const decals = useMemo(
+    () => allDecals.filter((item) => item.targetId === objectId),
+    [allDecals, objectId],
+  );
   const textures = useMemo(() => {
     const map = new Map<VfxDecal["type"], THREE.Texture>();
     for (const decal of decals) {
