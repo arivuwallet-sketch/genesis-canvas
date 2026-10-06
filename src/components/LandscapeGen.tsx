@@ -1,4 +1,4 @@
-import { Environment, Sky } from "@react-three/drei";
+import { Environment, Lightformer, Sky } from "@react-three/drei";
 import { useMemo } from "react";
 import * as THREE from "three";
 import { useGameConfigStore } from "../store/useGameConfigStore";
@@ -52,7 +52,12 @@ export function LandscapeGen() {
         turbidity={timeOfDay > 7 && timeOfDay < 19 ? 7 : 12}
         rayleigh={timeOfDay > 7 && timeOfDay < 19 ? 2 : 0.7}
       />
-      <Environment preset="park" environmentIntensity={timeOfDay > 7 && timeOfDay < 19 ? 0.75 : 0.35} />
+      {/* Local studio lighting — a CDN preset hangs the whole scene when its fetch fails. */}
+      <Environment environmentIntensity={timeOfDay > 7 && timeOfDay < 19 ? 0.9 : 0.4}>
+        <Lightformer intensity={2.5} position={[0, 8, 0]} rotation-x={Math.PI / 2} scale={[20, 20, 1]} />
+        <Lightformer intensity={1.2} color="#cfe3ff" position={[-8, 2, -2]} rotation-y={Math.PI / 2} scale={[24, 3, 1]} />
+        <Lightformer intensity={1} color="#ffe2c2" position={[8, 2, 2]} rotation-y={-Math.PI / 2} scale={[24, 3, 1]} />
+      </Environment>
       <directionalLight
         position={sun.position}
         intensity={sun.intensity}
