@@ -52,3 +52,15 @@ export function matchCatalog(prompt: string): CatalogEntry | null {
 export function catalogSummary(): string {
   return MODEL_CATALOG.map((e) => `${e.name}: ${e.modelUrl}; keywords: ${e.keywords.join(", ")}`).join("\n");
 }
+
+/**
+ * Register a model produced at runtime (e.g. by the text-to-3D generator) so
+ * the command parser treats it as a real, hosted asset rather than a
+ * hallucinated URL. Client-side only; lives for the browser session.
+ */
+export function registerGeneratedModel(entry: CatalogEntry): CatalogEntry {
+  const existing = MODEL_CATALOG.find((e) => e.modelUrl === entry.modelUrl);
+  if (existing) return existing;
+  MODEL_CATALOG.push(entry);
+  return entry;
+}
