@@ -57,10 +57,7 @@ export function PhysicsWorld({ children }: { children?: ReactNode }) {
     <Physics gravity={[0, -9.81, 0]}>
       {/* Static floor */}
       <RigidBody type="fixed" colliders="cuboid">
-        <mesh position={[0, -0.25, 0]} receiveShadow>
-          <boxGeometry args={[40, 0.5, 40]} />
-          <meshStandardMaterial color="#14181a" roughness={0.85} metalness={0.1} />
-        </mesh>
+        <RealisticGround detailed={quality !== "low"} />
       </RigidBody>
 
       {/* Reference metallic cube — verifies physics on load */}
