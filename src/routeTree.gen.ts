@@ -14,6 +14,8 @@ import { Route as Ue5RouteImport } from './routes/ue5'
 import { Route as UnityRouteImport } from './routes/unity'
 import { Route as ApiAiChatRouteImport } from './routes/api/ai/chat'
 import { Route as ApiAiDialogueRouteImport } from './routes/api/ai/dialogue'
+import { Route as ApiAiGenerateModelRouteImport } from './routes/api/ai/generate-model'
+import { Route as ApiAiModelFileRouteImport } from './routes/api/ai/model-file'
 import { Route as ApiAiUniversalDirectorRouteImport } from './routes/api/ai/universal-director'
 import { Route as ApiAiVisualQaRouteImport } from './routes/api/ai/visual-qa'
 import { Route as ApiLlmCommandsRouteImport } from './routes/api/llm/commands'
@@ -43,6 +45,16 @@ const ApiAiChatRoute = ApiAiChatRouteImport.update({
 const ApiAiDialogueRoute = ApiAiDialogueRouteImport.update({
   id: '/api/ai/dialogue',
   path: '/api/ai/dialogue',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAiGenerateModelRoute = ApiAiGenerateModelRouteImport.update({
+  id: '/api/ai/generate-model',
+  path: '/api/ai/generate-model',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAiModelFileRoute = ApiAiModelFileRouteImport.update({
+  id: '/api/ai/model-file',
+  path: '/api/ai/model-file',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAiUniversalDirectorRoute = ApiAiUniversalDirectorRouteImport.update({
@@ -77,6 +89,8 @@ export interface FileRoutesByFullPath {
   '/unity': typeof UnityRoute
   '/api/ai/chat': typeof ApiAiChatRoute
   '/api/ai/dialogue': typeof ApiAiDialogueRoute
+  '/api/ai/generate-model': typeof ApiAiGenerateModelRoute
+  '/api/ai/model-file': typeof ApiAiModelFileRoute
   '/api/ai/universal-director': typeof ApiAiUniversalDirectorRoute
   '/api/ai/visual-qa': typeof ApiAiVisualQaRoute
   '/api/llm/commands': typeof ApiLlmCommandsRoute
@@ -89,6 +103,8 @@ export interface FileRoutesByTo {
   '/unity': typeof UnityRoute
   '/api/ai/chat': typeof ApiAiChatRoute
   '/api/ai/dialogue': typeof ApiAiDialogueRoute
+  '/api/ai/generate-model': typeof ApiAiGenerateModelRoute
+  '/api/ai/model-file': typeof ApiAiModelFileRoute
   '/api/ai/universal-director': typeof ApiAiUniversalDirectorRoute
   '/api/ai/visual-qa': typeof ApiAiVisualQaRoute
   '/api/llm/commands': typeof ApiLlmCommandsRoute
@@ -102,6 +118,8 @@ export interface FileRoutesById {
   '/unity': typeof UnityRoute
   '/api/ai/chat': typeof ApiAiChatRoute
   '/api/ai/dialogue': typeof ApiAiDialogueRoute
+  '/api/ai/generate-model': typeof ApiAiGenerateModelRoute
+  '/api/ai/model-file': typeof ApiAiModelFileRoute
   '/api/ai/universal-director': typeof ApiAiUniversalDirectorRoute
   '/api/ai/visual-qa': typeof ApiAiVisualQaRoute
   '/api/llm/commands': typeof ApiLlmCommandsRoute
@@ -116,6 +134,8 @@ export interface FileRouteTypes {
     | '/unity'
     | '/api/ai/chat'
     | '/api/ai/dialogue'
+    | '/api/ai/generate-model'
+    | '/api/ai/model-file'
     | '/api/ai/universal-director'
     | '/api/ai/visual-qa'
     | '/api/llm/commands'
@@ -128,6 +148,8 @@ export interface FileRouteTypes {
     | '/unity'
     | '/api/ai/chat'
     | '/api/ai/dialogue'
+    | '/api/ai/generate-model'
+    | '/api/ai/model-file'
     | '/api/ai/universal-director'
     | '/api/ai/visual-qa'
     | '/api/llm/commands'
@@ -140,6 +162,8 @@ export interface FileRouteTypes {
     | '/unity'
     | '/api/ai/chat'
     | '/api/ai/dialogue'
+    | '/api/ai/generate-model'
+    | '/api/ai/model-file'
     | '/api/ai/universal-director'
     | '/api/ai/visual-qa'
     | '/api/llm/commands'
@@ -153,6 +177,8 @@ export interface RootRouteChildren {
   UnityRoute: typeof UnityRoute
   ApiAiChatRoute: typeof ApiAiChatRoute
   ApiAiDialogueRoute: typeof ApiAiDialogueRoute
+  ApiAiGenerateModelRoute: typeof ApiAiGenerateModelRoute
+  ApiAiModelFileRoute: typeof ApiAiModelFileRoute
   ApiAiUniversalDirectorRoute: typeof ApiAiUniversalDirectorRoute
   ApiAiVisualQaRoute: typeof ApiAiVisualQaRoute
   ApiLlmCommandsRoute: typeof ApiLlmCommandsRoute
@@ -195,6 +221,20 @@ declare module '@tanstack/react-router' {
       path: '/api/ai/dialogue'
       fullPath: '/api/ai/dialogue'
       preLoaderRoute: typeof ApiAiDialogueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/generate-model': {
+      id: '/api/ai/generate-model'
+      path: '/api/ai/generate-model'
+      fullPath: '/api/ai/generate-model'
+      preLoaderRoute: typeof ApiAiGenerateModelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/model-file': {
+      id: '/api/ai/model-file'
+      path: '/api/ai/model-file'
+      fullPath: '/api/ai/model-file'
+      preLoaderRoute: typeof ApiAiModelFileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/ai/universal-director': {
@@ -241,6 +281,8 @@ const rootRouteChildren: RootRouteChildren = {
   UnityRoute: UnityRoute,
   ApiAiChatRoute: ApiAiChatRoute,
   ApiAiDialogueRoute: ApiAiDialogueRoute,
+  ApiAiGenerateModelRoute: ApiAiGenerateModelRoute,
+  ApiAiModelFileRoute: ApiAiModelFileRoute,
   ApiAiUniversalDirectorRoute: ApiAiUniversalDirectorRoute,
   ApiAiVisualQaRoute: ApiAiVisualQaRoute,
   ApiLlmCommandsRoute: ApiLlmCommandsRoute,
