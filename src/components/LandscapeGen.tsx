@@ -37,7 +37,9 @@ export function LandscapeGen() {
       const detail =
         Math.sin(x * 0.37 + y * 0.19) * 0.32 +
         Math.cos(x * 0.23 - y * 0.41) * 0.18;
-      p.setZ(i, (broad * 0.65 + detail) * mountainHeight);
+      // Keep the central build/play area flat; hills rise only beyond it.
+      const edge = THREE.MathUtils.smoothstep(Math.hypot(x, y), 21, 34);
+      p.setZ(i, (broad * 0.65 + detail) * mountainHeight * edge - (1 - edge) * 0.05);
     }
     p.needsUpdate = true;
     g.computeVertexNormals();
