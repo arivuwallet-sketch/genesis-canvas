@@ -179,12 +179,12 @@ export const useSceneStore = create<SceneState>((set, get) => ({
   },
   upsertObjectNodes: (objects) =>
     set((state) => {
-      const objectIds = new Set(objects.map((object) => object.id));
-      const nonObjectNodes = state.nodes.filter(
-        (node) =>
-          !node.id.startsWith("object:") || objectIds.has(node.id.slice("object:".length)),
+      // Previous object nodes are kept only as a lookup; the fresh list below
+      // replaces them so each entity appears exactly once.
+      const existing = new Map(
+        state.nodes.filter((node) => node.id.startsWith("object:")).map((node) => [node.id, node]),
       );
-      const existing = new Map(nonObjectNodes.map((node) => [node.id, node]));
+      const nonObjectNodes = state.nodes.filter((node) => !node.id.startsWith("object:"));
       const objectNodes = objects.map((object) => {
         const id = `object:${object.id}`;
         const previous = existing.get(id);

@@ -100,14 +100,19 @@ function VehicleGameplay({
     });
   }, [doorsOpen, hasNamedDoors, visualRoot]);
 
+  // Claim control once on mount (if nobody else has it) and release on unmount.
+  // activeActorId is read imperatively: depending on it caused a claim/release
+  // ping-pong that hit React's maximum update depth.
   useEffect(() => {
-    if (!object.gameplay.autoControl || activeActorId) return;
-    setActiveActor(object.id, "vehicle");
-    initialized.current = true;
+    if (!object.gameplay.autoControl) return;
+    if (!useGameplayControlStore.getState().activeActorId) {
+      setActiveActor(object.id, "vehicle");
+      initialized.current = true;
+    }
     return () => {
       if (initialized.current) clearActiveActor(object.id);
     };
-  }, [activeActorId, clearActiveActor, object.gameplay.autoControl, object.id, setActiveActor]);
+  }, [clearActiveActor, object.gameplay.autoControl, object.id, setActiveActor]);
 
   useFrame((_, rawDelta) => {
     const body = bodyRef.current;
@@ -296,10 +301,12 @@ function HumanoidGameplay({
   const currentAnimation = useRef("");
 
   useEffect(() => {
-    if (!object.gameplay.autoControl || activeActorId) return;
-    setActiveActor(object.id, "humanoid");
+    if (!object.gameplay.autoControl) return;
+    if (!useGameplayControlStore.getState().activeActorId) {
+      setActiveActor(object.id, "humanoid");
+    }
     return () => clearActiveActor(object.id);
-  }, [activeActorId, clearActiveActor, object.gameplay.autoControl, object.id, setActiveActor]);
+  }, [clearActiveActor, object.gameplay.autoControl, object.id, setActiveActor]);
 
   useFrame((_, rawDelta) => {
     const body = bodyRef.current;
