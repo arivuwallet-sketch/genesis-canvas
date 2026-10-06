@@ -8,6 +8,7 @@ import { useGameConfigStore } from "../store/useGameConfigStore";
 import { matchCatalog } from "../data/modelCatalog";
 import { inferGameplaySpec } from "../gameplay/GameplayActorTypes";
 import { applyAiResponse, applyCommand, extractAssistantReply } from "../utils/CommandParser";
+import { generateRealisticModel, isGenerationPrompt } from "../utils/modelGenerator";
 
 /** Prompts that can be completed deterministically without the remote AI pipeline. */
 export function isImmediatePrompt(prompt: string): boolean {
@@ -90,6 +91,12 @@ export function useAiCommand() {
 
     store.setChatInput("");
     store.pushLog(prompt, "user");
+
+    // Explicit sculpt/rig requests go to the text-to-3D generator (runs in background).
+    if (isGenerationPrompt(prompt, !!matchCatalog(prompt))) {
+      void generateRealisticModel(prompt);
+      return;
+    }
 
     const shortcut = localShortcut(prompt);
     if (shortcut) {
