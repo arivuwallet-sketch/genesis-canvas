@@ -10,11 +10,29 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as Ue5RouteImport } from './routes/ue5'
+import { Route as UnityRouteImport } from './routes/unity'
 import { Route as ApiAiChatRouteImport } from './routes/api/ai/chat'
+import { Route as ApiAiDialogueRouteImport } from './routes/api/ai/dialogue'
+import { Route as ApiAiUniversalDirectorRouteImport } from './routes/api/ai/universal-director'
+import { Route as ApiAiVisualQaRouteImport } from './routes/api/ai/visual-qa'
+import { Route as ApiLlmCommandsRouteImport } from './routes/api/llm/commands'
+import { Route as ApiLlmUe5CommandsRouteImport } from './routes/api/llm/ue5-commands'
+import { Route as ApiSaveMacroRouteImport } from './routes/api/save/macro'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Ue5Route = Ue5RouteImport.update({
+  id: '/ue5',
+  path: '/ue5',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UnityRoute = UnityRouteImport.update({
+  id: '/unity',
+  path: '/unity',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAiChatRoute = ApiAiChatRouteImport.update({
@@ -22,31 +40,124 @@ const ApiAiChatRoute = ApiAiChatRouteImport.update({
   path: '/api/ai/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAiDialogueRoute = ApiAiDialogueRouteImport.update({
+  id: '/api/ai/dialogue',
+  path: '/api/ai/dialogue',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAiUniversalDirectorRoute = ApiAiUniversalDirectorRouteImport.update({
+  id: '/api/ai/universal-director',
+  path: '/api/ai/universal-director',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAiVisualQaRoute = ApiAiVisualQaRouteImport.update({
+  id: '/api/ai/visual-qa',
+  path: '/api/ai/visual-qa',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiLlmCommandsRoute = ApiLlmCommandsRouteImport.update({
+  id: '/api/llm/commands',
+  path: '/api/llm/commands',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiLlmUe5CommandsRoute = ApiLlmUe5CommandsRouteImport.update({
+  id: '/api/llm/ue5-commands',
+  path: '/api/llm/ue5-commands',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSaveMacroRoute = ApiSaveMacroRouteImport.update({
+  id: '/api/save/macro',
+  path: '/api/save/macro',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ue5': typeof Ue5Route
+  '/unity': typeof UnityRoute
   '/api/ai/chat': typeof ApiAiChatRoute
+  '/api/ai/dialogue': typeof ApiAiDialogueRoute
+  '/api/ai/universal-director': typeof ApiAiUniversalDirectorRoute
+  '/api/ai/visual-qa': typeof ApiAiVisualQaRoute
+  '/api/llm/commands': typeof ApiLlmCommandsRoute
+  '/api/llm/ue5-commands': typeof ApiLlmUe5CommandsRoute
+  '/api/save/macro': typeof ApiSaveMacroRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ue5': typeof Ue5Route
+  '/unity': typeof UnityRoute
   '/api/ai/chat': typeof ApiAiChatRoute
+  '/api/ai/dialogue': typeof ApiAiDialogueRoute
+  '/api/ai/universal-director': typeof ApiAiUniversalDirectorRoute
+  '/api/ai/visual-qa': typeof ApiAiVisualQaRoute
+  '/api/llm/commands': typeof ApiLlmCommandsRoute
+  '/api/llm/ue5-commands': typeof ApiLlmUe5CommandsRoute
+  '/api/save/macro': typeof ApiSaveMacroRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ue5': typeof Ue5Route
+  '/unity': typeof UnityRoute
   '/api/ai/chat': typeof ApiAiChatRoute
+  '/api/ai/dialogue': typeof ApiAiDialogueRoute
+  '/api/ai/universal-director': typeof ApiAiUniversalDirectorRoute
+  '/api/ai/visual-qa': typeof ApiAiVisualQaRoute
+  '/api/llm/commands': typeof ApiLlmCommandsRoute
+  '/api/llm/ue5-commands': typeof ApiLlmUe5CommandsRoute
+  '/api/save/macro': typeof ApiSaveMacroRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/ai/chat'
+  fullPaths:
+    | '/'
+    | '/ue5'
+    | '/unity'
+    | '/api/ai/chat'
+    | '/api/ai/dialogue'
+    | '/api/ai/universal-director'
+    | '/api/ai/visual-qa'
+    | '/api/llm/commands'
+    | '/api/llm/ue5-commands'
+    | '/api/save/macro'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/ai/chat'
-  id: '__root__' | '/' | '/api/ai/chat'
+  to:
+    | '/'
+    | '/ue5'
+    | '/unity'
+    | '/api/ai/chat'
+    | '/api/ai/dialogue'
+    | '/api/ai/universal-director'
+    | '/api/ai/visual-qa'
+    | '/api/llm/commands'
+    | '/api/llm/ue5-commands'
+    | '/api/save/macro'
+  id:
+    | '__root__'
+    | '/'
+    | '/ue5'
+    | '/unity'
+    | '/api/ai/chat'
+    | '/api/ai/dialogue'
+    | '/api/ai/universal-director'
+    | '/api/ai/visual-qa'
+    | '/api/llm/commands'
+    | '/api/llm/ue5-commands'
+    | '/api/save/macro'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  Ue5Route: typeof Ue5Route
+  UnityRoute: typeof UnityRoute
   ApiAiChatRoute: typeof ApiAiChatRoute
+  ApiAiDialogueRoute: typeof ApiAiDialogueRoute
+  ApiAiUniversalDirectorRoute: typeof ApiAiUniversalDirectorRoute
+  ApiAiVisualQaRoute: typeof ApiAiVisualQaRoute
+  ApiLlmCommandsRoute: typeof ApiLlmCommandsRoute
+  ApiLlmUe5CommandsRoute: typeof ApiLlmUe5CommandsRoute
+  ApiSaveMacroRoute: typeof ApiSaveMacroRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -58,6 +169,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ue5': {
+      id: '/ue5'
+      path: '/ue5'
+      fullPath: '/ue5'
+      preLoaderRoute: typeof Ue5RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/unity': {
+      id: '/unity'
+      path: '/unity'
+      fullPath: '/unity'
+      preLoaderRoute: typeof UnityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/ai/chat': {
       id: '/api/ai/chat'
       path: '/api/ai/chat'
@@ -65,12 +190,62 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/ai/dialogue': {
+      id: '/api/ai/dialogue'
+      path: '/api/ai/dialogue'
+      fullPath: '/api/ai/dialogue'
+      preLoaderRoute: typeof ApiAiDialogueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/universal-director': {
+      id: '/api/ai/universal-director'
+      path: '/api/ai/universal-director'
+      fullPath: '/api/ai/universal-director'
+      preLoaderRoute: typeof ApiAiUniversalDirectorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/visual-qa': {
+      id: '/api/ai/visual-qa'
+      path: '/api/ai/visual-qa'
+      fullPath: '/api/ai/visual-qa'
+      preLoaderRoute: typeof ApiAiVisualQaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/llm/commands': {
+      id: '/api/llm/commands'
+      path: '/api/llm/commands'
+      fullPath: '/api/llm/commands'
+      preLoaderRoute: typeof ApiLlmCommandsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/llm/ue5-commands': {
+      id: '/api/llm/ue5-commands'
+      path: '/api/llm/ue5-commands'
+      fullPath: '/api/llm/ue5-commands'
+      preLoaderRoute: typeof ApiLlmUe5CommandsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/save/macro': {
+      id: '/api/save/macro'
+      path: '/api/save/macro'
+      fullPath: '/api/save/macro'
+      preLoaderRoute: typeof ApiSaveMacroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  Ue5Route: Ue5Route,
+  UnityRoute: UnityRoute,
   ApiAiChatRoute: ApiAiChatRoute,
+  ApiAiDialogueRoute: ApiAiDialogueRoute,
+  ApiAiUniversalDirectorRoute: ApiAiUniversalDirectorRoute,
+  ApiAiVisualQaRoute: ApiAiVisualQaRoute,
+  ApiLlmCommandsRoute: ApiLlmCommandsRoute,
+  ApiLlmUe5CommandsRoute: ApiLlmUe5CommandsRoute,
+  ApiSaveMacroRoute: ApiSaveMacroRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
