@@ -86,8 +86,8 @@ export function Viewport() {
       onPointerMissed={() => setSelectedId(null)}
       {...(glFactory ? { gl: glFactory } : {})}
     >
-      <color attach="background" args={["#080a08"]} />
-      <fog attach="fog" args={["#080a08", 30, 90]} />
+      <color attach="background" args={["#aebfc8"]} />
+      <fog attach="fog" args={["#aebfc8", 45, 160]} />
 
       {showPerf ? <Perf position="top-left" /> : null}
 
